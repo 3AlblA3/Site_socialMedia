@@ -12,7 +12,7 @@ exports.getAllCommentLikes = async (req, res, next) => {
 
 exports.createCommentLike = async (req, res, next) => {
     try {
-        const newCommentLike = { ...req.body };
+        const newCommentLike = { ...req.body, user_id: req.auth.user_id};
         const commentLike = await CommentLike.create(newCommentLike);
         res.status(200).json(commentLike);
     } catch (error) {
@@ -40,6 +40,9 @@ exports.deleteCommentLike = async (req, res, next) => {
         const commentLike = await CommentLike.findByPk(commentLikeId); 
         if (!commentLike) {
             return res.status(404).json({ message: 'commentLike not found!' }); 
+        }
+        if (commentLike.user_id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
         }
         await CommentLike.destroy({where: { id: commentLikeId }});
         res.status(200).json({ message: 'commentLike deleted!' });

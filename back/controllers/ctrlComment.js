@@ -12,7 +12,7 @@ exports.getAllComments = async (req, res, next) => {
 
 exports.createComment = async (req, res, next) => {
     try {
-        const newComment = { ...req.body };
+        const newComment = { ...req.body, user_id: req.auth.user_id};
         const comment = await Comment.create(newComment);
         res.status(201).json({ message: 'Comment created', comment });
     } catch (error) {

@@ -14,12 +14,14 @@ exports.getAllPosts = async (req, res, next) => {
 
 //Créer un post
 
+
 exports.createPost = async (req, res, next) => {
     try {
-        const newPost = { ...req.body };
+        const newPost = { ...req.body, user_id: req.auth.user_id };
         const post = await Post.create(newPost);
         res.status(201).json({ message: 'Post created', post });
     } catch (error) {
+        console.error('Error during post creation:', error); // Ajoutez cette ligne pour le debug
         res.status(400).json({ error: error.message });
     }
 };
@@ -29,7 +31,7 @@ exports.createPost = async (req, res, next) => {
 exports.getOnePost = async (req, res, next) => {
     try{ 
         const post = await Post.findByPk(req.params.id); 
-        if (post) {
+        if (post) {nod
             res.status(200).json(post);
         } else {
             res.status(404).json({ message: 'Post not found!' });
