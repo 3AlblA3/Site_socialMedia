@@ -43,6 +43,10 @@ exports.updatePost = async (req, res, next) => {
             return res.status(404).json({ message: 'Comment not found!' }); 
         }
 
+        if (comment.user_id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
         const commentObject = req.body;
         delete commentObject.id; 
 
@@ -64,6 +68,9 @@ exports.deletePost = async (req, res, next) => {
         const comment = await Comment.findByPk(commentId); 
         if (!comment) {
             return res.status(404).json({ message: 'Comment not found!' }); 
+        }
+        if (comment.user_id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
         }
         await Comment.destroy({where: { id: commentId }});
         res.status(200).json({ message: 'Post deleted!' });

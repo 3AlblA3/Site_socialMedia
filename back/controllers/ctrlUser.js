@@ -2,6 +2,8 @@ const User = require("../models/modelUser");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 
+// Afficher tout les utilisateurs
+
 exports.getAllUsers = async (req, res, next) => {
     try {
         const users = await User.findAll();
@@ -12,6 +14,8 @@ exports.getAllUsers = async (req, res, next) => {
     }
 };
 
+// Créer un compte
+
 exports.signup = async (req, res, next) => {
     try {
         // Vérifier si un utilisateur avec cet email existe déjà, même soft-deleted
@@ -20,18 +24,18 @@ exports.signup = async (req, res, next) => {
             paranoid: false, // Rechercher même les enregistrements soft-deleted
         });
 
-        if (existingUser) {
-            if (existingUser.deletedAt) {
+        if (existingUser) { 
+            if (existingUser.deletedAt) { // Si l'utilisateur a été supprimé
                 // Restaurer l'utilisateur soft-deleted
                 await existingUser.restore();
                 res.status(200).json({ message: 'User restored', user: existingUser });
-            } else {
+            } else { 
                 return res.status(400).json({ error: "Email already in use" });
             }
         } else {
-            const hash = await bcrypt.hash(req.body.password, 10); // Hachage du mot de passe
-            const user = await User.create({
-                role_id: req.body.role_id,
+            const hash = await bcrypt.hash(req.body.password, 10); // "Hachage" du mot de passe
+            const user = await User.create({ 
+                role_id: req.body.role_id, //Pour l'instant l'user pourra choisir son rôle à la création de son compte
                 first_name: req.body.first_name,
                 last_name: req.body.last_name,
                 username: req.body.username,
@@ -45,6 +49,8 @@ exports.signup = async (req, res, next) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+//Quand l'user se connecte au site
 
 exports.login = async (req, res, next) => {
     try {
@@ -64,7 +70,7 @@ exports.login = async (req, res, next) => {
             return res.status(401).json({ error: 'Paire Mail/Mot de passe incorrect !' });
         }
 
-        // Si la paire email/mot de passe est correcte, retourner l'ID de l'utilisateur et un token
+        // Si la paire email/mot de passe est correcte, retourner l'ID et le role_id du user et un token
         const token = jwt.sign(
             { user_id: user.id, role_id: user.role_id }, // Payload
             process.env.JWT_SECRET, // Clé secrète
@@ -78,6 +84,7 @@ exports.login = async (req, res, next) => {
     }
 };
 
+//Récupérer les informations d'un user
 
 exports.getOneUser = async (req, res, next) => {
     try{ const user = await User.findByPk(req.params.id); 
@@ -91,11 +98,11 @@ exports.getOneUser = async (req, res, next) => {
     }
 };
 
-//UPDATE
+//Si l'utilisateur veut modifier les informations de son compte
+
 exports.updateUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
-        const { role_id, user_id } = req.auth; // Supposons que req.auth contient les informations du JWT
 
         // Vérifier si l'utilisateur existe
         const user = await User.findByPk(userId);
@@ -103,12 +110,21 @@ exports.updateUser = async (req, res, next) => {
             return res.status(404).json({ message: 'User not found!' });
         }
 
-        // Vérifier les autorisations
-        if (role_id !== 3 && user_id !== userId) { // L'utilisateur ne peut pas modifier les autres comptes sauf si c'est un admin
+        //Vérifier que le user à modifier est bien celui qui exécute la requête
+
+        if (user.id !== req.auth.user_id) {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
-        const userObject = req.body;
+        const hash = await bcrypt.hash(req.body.password, 10); // "Hachage" du mot de passe
+
+        const userObject = {
+            role_id: req.body.role_id, //Pour l'instant l'user pourra choisir son rôle à la création de son compte
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            username: req.body.username,
+            email: req.body.email,
+            password: hash};
 
         // Supprimer l'ID et l'email des données à mettre à jour
         delete userObject.id;
@@ -123,23 +139,25 @@ exports.updateUser = async (req, res, next) => {
         res.status(400).json({ error: error.message });
     }
 };
+
+//Supprimer l'utilisateur
+
 exports.deleteUser = async (req, res, next) => {
     try {
-        const userToDelete = await User.findOne({ where: { id: req.params.id } });
+        const userId = req.params.id;
+
+        // On récupère les informations du user à supprimer
+
+        const userToDelete = await User.findByPk(userId);
 
         if (!userToDelete) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Vérifier les permissions en fonction du rôle
-        if (req.auth.role_id === 2) {
-            // Registered users can only delete their own accounts
-            if (req.auth.user_id !== userToDelete.id) {
-                return res.status(403).json({ message: 'Forbidden: You can only delete your own account' });
-            }
-        } else if (req.auth.role_id !== 3) {
-            // Only admins can delete any account
-            return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this account' });
+        //Vérifier que le user à supprimer est bien celui qui exécute la requête
+
+        if (userToDelete.id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
         }
 
         // Si les vérifications passent, supprimer l'utilisateur

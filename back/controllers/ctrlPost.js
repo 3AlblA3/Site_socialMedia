@@ -1,5 +1,7 @@
 const Post = require("../models/modelPost")
 
+//Afficher tout les posts
+
 exports.getAllPosts = async (req, res, next) => {
     try {
         const posts = await Post.findAll();
@@ -9,6 +11,8 @@ exports.getAllPosts = async (req, res, next) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+//Créer un post
 
 exports.createPost = async (req, res, next) => {
     try {
@@ -20,6 +24,7 @@ exports.createPost = async (req, res, next) => {
     }
 };
 
+// Afficher un seul post
 
 exports.getOnePost = async (req, res, next) => {
     try{ 
@@ -34,7 +39,8 @@ exports.getOnePost = async (req, res, next) => {
     }
 };
 
-//UPDATE
+//Mettre à jour un post
+
 exports.updatePost = async (req, res, next) => {
     try {
         const postId = req.params.id; 
@@ -43,6 +49,10 @@ exports.updatePost = async (req, res, next) => {
             return res.status(404).json({ message: 'Post not found!' }); 
         }
 
+        if (post.user_id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+  
         const postObject = req.body;
         delete postObject.id; 
 
@@ -56,6 +66,8 @@ exports.updatePost = async (req, res, next) => {
     }
 };
 
+//Supprimer un post
+
 exports.deletePost = async (req, res, next) => {
     try {
         
@@ -64,6 +76,9 @@ exports.deletePost = async (req, res, next) => {
         const post = await Post.findByPk(postId); 
         if (!post) {
             return res.status(404).json({ message: 'Post not found!' }); 
+        }
+        if (post.user_id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
         }
         await Post.destroy({where: { id: postId }});
         res.status(200).json({ message: 'Post deleted!' });
