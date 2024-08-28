@@ -45,16 +45,7 @@ exports.getOnePost = async (req, res, next) => {
 
 exports.updatePost = async (req, res, next) => {
     try {
-        const postId = req.params.id; 
-        const post = await Post.findByPk(postId); 
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found!' }); 
-        }
-
-        if (post.user_id !== req.auth.user_id) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
-  
+        const postId = req.params.id;  
         const postObject = req.body;
         delete postObject.id; 
 
@@ -75,13 +66,6 @@ exports.deletePost = async (req, res, next) => {
         
         const postId = req.params.id; 
 
-        const post = await Post.findByPk(postId); 
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found!' }); 
-        }
-        if (post.user_id !== req.auth.user_id) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
         await Post.destroy({where: { id: postId }});
         res.status(200).json({ message: 'Post deleted!' });
 
