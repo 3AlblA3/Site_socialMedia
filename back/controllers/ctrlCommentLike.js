@@ -37,13 +37,7 @@ exports.getOneCommentLike = async (req, res, next) => {
 exports.deleteCommentLike = async (req, res, next) => {
     try {
         const commentLikeId = req.params.id; 
-        const commentLike = await CommentLike.findByPk(commentLikeId); 
-        if (!commentLike) {
-            return res.status(404).json({ message: 'commentLike not found!' }); 
-        }
-        if (commentLike.user_id !== req.auth.user_id) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
+
         await CommentLike.destroy({where: { id: commentLikeId }});
         res.status(200).json({ message: 'commentLike deleted!' });
 

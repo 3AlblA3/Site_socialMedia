@@ -37,13 +37,6 @@ exports.getOnePostLike = async (req, res, next) => {
 exports.deletePostLike = async (req, res, next) => {
     try {
         const postLikeId = req.params.id; 
-        const postLike = await PostLike.findByPk(postLikeId); 
-        if (!postLike) {
-            return res.status(404).json({ message: 'postLike not found!' }); 
-        }
-        if (postLike.user_id !== req.auth.user_id) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
         await PostLike.destroy({where: { id: postLikeId }});
         res.status(200).json({ message: 'postLike deleted!' });
 
