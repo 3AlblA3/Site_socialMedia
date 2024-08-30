@@ -34,7 +34,8 @@ article{
     background-color: azure;
     border-radius: 1rem;
     margin-bottom: 1rem;
-    box-shadow: 1rem 1rem grey;
+    box-shadow: 0.5rem 0.5rem rgb(238, 238, 238);
+    padding:1rem
 }
 
 form{
