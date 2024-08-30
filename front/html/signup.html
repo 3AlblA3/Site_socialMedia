@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <a href="index.html"><h1>Social Media</h1></a>
+        <a href="signup.html"><h3>Sign up</h3></a>
+        <a href="login.html"><h3>Log in</h3></a>
+    </header>
+    <main>
+        <section>
+            <form action="submit" id="form">
+                <label for="firstName">First name:</label>
+                <input type="text" name="firstName" id="firstName">
+                <label for="lastName">Last name:</label>
+                <input type="text" name="lastName" id="lastName">
+                <label for="role">Your favorite color:</label>
+                <!-- select pour créer un menu déroulant, et option pour chacun des choix possibles -->
+                <select name="role_id" id="role_id">
+                    <option value="2">Registered</option>
+                    <option value="3">Admin</option>
+                </select>
+                <label for="email">Email:</label>
+                <input type="text" name="email" id="email">
+                <label for="password">Enter a password:</label>
+                <input type="password"  name="password" id="password">
+                <label for="confirmPassword">Please confirm your password:</label>
+                <input type="password" name="confirmPassword" id="confirmPassword">
+                <input type="submit" value="Submit!">
+            </form>
+
+        </section>
+    </main>
+    <footer>
+        <p>Ceci est un WIP</p>
+    </footer>
+    <script src="../js/signup.js"></script>
+
+</body>
+</html>
