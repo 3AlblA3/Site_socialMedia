@@ -16,19 +16,29 @@ exports.getAllUsers = async (req, res, next) => {
 
 // Créer un compte
 
-exports.signup = async (req, res, next) => {
+exports.signup = async (req, res, next) => {    
     try {
         // Vérifier si un utilisateur avec cet email existe déjà, même soft-deleted
         const existingUser = await User.findOne({
             where: { email: req.body.email },
-            paranoid: false, // Rechercher même les enregistrements soft-deleted
+            paranoid: false
         });
 
         if (existingUser) { 
             if (existingUser.deletedAt) { // Si l'utilisateur a été supprimé
-                // Restaurer l'utilisateur soft-deleted
-                await existingUser.restore();
-                res.status(200).json({ message: 'User restored', user: existingUser });
+
+                const passwordValid = await bcrypt.compare(req.body.password, existingUser.password);
+
+                if (passwordValid) {
+                    // Restaurer l'utilisateur soft-deleted si le mot de passe est correct
+                    await existingUser.restore();
+                    return res.status(200).json({ message: 'User restored', user: existingUser });
+                    
+                } else {
+
+                    // Mot de passe incorrect
+                    return res.status(401).json({ error: "Mot de passe incorrect pour restaurer l'utilisateur" });
+                }
             } else { 
                 return res.status(400).json({ error: "Email already in use" });
             }
