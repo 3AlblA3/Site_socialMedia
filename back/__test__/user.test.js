@@ -1,13 +1,21 @@
 const request = require('supertest');
 const app = require('../app'); // Remplacez par le chemin correct vers votre app Express
 const User = require('../models/modelUser');
-const sequelize = require('../config/database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const sequelize = require('../config/database');
+
 
 jest.mock('../models/modelUser');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
+
+beforeAll(async () => {
+    await sequelize.authenticate();
+});
+afterAll(async () => {
+    await sequelize.close(); 
+});
 
 //Groupe de test concernant la route GET
 
@@ -53,7 +61,7 @@ describe('GET /users', () => {
 
 // Test de notre route GET by id
 
-describe('GET /users/1', () => {
+describe('GET /users/id', () => {
     it('should return the user if found', async () => {
         const user = {
             id: 1,

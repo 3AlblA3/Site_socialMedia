@@ -7,7 +7,6 @@ exports.getAllPosts = async (req, res, next) => {
         const posts = await Post.findAll();
         res.status(200).json(posts);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -31,7 +30,7 @@ exports.createPost = async (req, res, next) => {
 exports.getOnePost = async (req, res, next) => {
     try{ 
         const post = await Post.findByPk(req.params.id); 
-        if (post) {nod
+        if (post) {
             res.status(200).json(post);
         } else {
             res.status(404).json({ message: 'Post not found!' });
