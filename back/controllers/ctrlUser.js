@@ -9,7 +9,6 @@ exports.getAllUsers = async (req, res, next) => {
         const users = await User.findAll();
         res.status(200).json(users);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -26,16 +25,13 @@ exports.signup = async (req, res, next) => {
 
         if (existingUser) { 
             if (existingUser.deletedAt) { // Si l'utilisateur a été supprimé
-
                 const passwordValid = await bcrypt.compare(req.body.password, existingUser.password);
 
                 if (passwordValid) {
                     // Restaurer l'utilisateur soft-deleted si le mot de passe est correct
-                    await existingUser.restore();
-                    return res.status(200).json({ message: 'User restored', user: existingUser });
-                    
+                    await User.restore({ where: { id: existingUser.id } });
+                    return res.status(200).json({ message: 'User restored'});
                 } else {
-
                     // Mot de passe incorrect
                     return res.status(401).json({ error: "Mot de passe incorrect pour restaurer l'utilisateur" });
                 }
