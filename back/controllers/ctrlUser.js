@@ -33,7 +33,7 @@ exports.signup = async (req, res, next) => {
                     return res.status(200).json({ message: 'User restored'});
                 } else {
                     // Mot de passe incorrect
-                    return res.status(401).json({ error: "Mot de passe incorrect pour restaurer l'utilisateur" });
+                    return res.status(401).json({ error: "Wrong password" });
                 }
             } else { 
                 return res.status(400).json({ error: "Email already in use" });
@@ -49,7 +49,7 @@ exports.signup = async (req, res, next) => {
                 password: hash
             });
         
-            res.status(201).json({ message: 'Utilisateur créé !', user });
+            res.status(201).json({ message: 'User created!', user });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -65,7 +65,7 @@ exports.login = async (req, res, next) => {
 
         if (!user) {
             // Si l'utilisateur n'existe pas, retourner une erreur
-            return res.status(401).json({ error: 'Paire Mail/Mot de passe incorrect !' });
+            return res.status(401).json({ error: 'Invalid mail/password!' });
         }
 
         // Comparaison du mot de passe
@@ -73,7 +73,7 @@ exports.login = async (req, res, next) => {
 
         if (!valid) {
             // Si le mot de passe est incorrect, retourner une erreur
-            return res.status(401).json({ error: 'Paire Mail/Mot de passe incorrect !' });
+            return res.status(401).json({ error: 'Invalid mail/password!' });
         }
 
         // Si la paire email/mot de passe est correcte, retourner l'ID et le role_id du user et un token

@@ -5,7 +5,6 @@ exports.getAllCommentLikes = async (req, res, next) => {
         const commentLikes = await CommentLike.findAll();
         res.status(200).json(commentLikes);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -16,7 +15,6 @@ exports.createCommentLike = async (req, res, next) => {
         const commentLike = await CommentLike.create(newCommentLike);
         res.status(200).json(commentLike);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -27,7 +25,7 @@ exports.getOneCommentLike = async (req, res, next) => {
         if (commentLike) {
             res.status(200).json(commentLike);
         } else {
-            res.status(404).json({ message: 'commentLike not found!' });
+            res.status(404).json({ message: 'CommentLike not found!' });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -39,7 +37,7 @@ exports.deleteCommentLike = async (req, res, next) => {
         const commentLikeId = req.params.id; 
 
         await CommentLike.destroy({where: { id: commentLikeId }});
-        res.status(200).json({ message: 'commentLike deleted!' });
+        res.status(200).json({ message: 'CommentLike deleted!' });
 
         }
      catch (error) {

@@ -138,7 +138,7 @@ describe('POST /users/signup', () => {
         //Réponse attendue
 
         expect(response.status).toBe(201);
-        expect(response.body.message).toBe('Utilisateur créé !');
+        expect(response.body.message).toBe('User created!');
         expect(response.body.user.email).toBe('jean.dujardin@gmail.com');
         expect(User.create).toHaveBeenCalledWith(expect.objectContaining({
             role_id: 2,
@@ -216,7 +216,7 @@ describe('POST /users/signup', () => {
             .send({ email: 'deleteduser@gmail.com', password: 'wrongpassword' });
 
         expect(response.status).toBe(401);
-        expect(response.body.error).toBe('Mot de passe incorrect pour restaurer l\'utilisateur');
+        expect(response.body.error).toBe('Wrong password');
         expect(User.restore).not.toHaveBeenCalled();
     });
 
@@ -290,7 +290,7 @@ describe('POST /users/login', () => {
             .send({ email: 'nonexistentuser@example.com', password: 'password123' });
 
         expect(response.status).toBe(401);
-        expect(response.body.error).toBe('Paire Mail/Mot de passe incorrect !');
+        expect(response.body.error).toBe('Invalid mail/password!');
         expect(User.findOne).toHaveBeenCalledTimes(1);
         expect(bcrypt.compare).not.toHaveBeenCalled();
     });
@@ -315,7 +315,7 @@ describe('POST /users/login', () => {
             .send({ email: 'existinguser@gmail.com', password: 'wrongpassword' });
 
         expect(response.status).toBe(401);
-        expect(response.body.error).toBe('Paire Mail/Mot de passe incorrect !');
+        expect(response.body.error).toBe('Invalid mail/password!');
         expect(User.findOne).toHaveBeenCalledTimes(1);
         expect(bcrypt.compare).toHaveBeenCalledWith('wrongpassword', 'hashedpassword');
     });
@@ -328,6 +328,100 @@ describe('POST /users/login', () => {
             .send({ email: 'erroruser@example.com', password: 'password123' });
 
         expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Database error');
+    });
+});
+
+// Test de notre route PUT
+
+describe('PUT /users/:id', () => {
+
+    //Avant chaque test, simulation de notre middleware auth.js et de la fonction jwt.verify
+
+    beforeEach(() => {
+        jwt.verify = jest.fn().mockImplementation((token, secret) => {
+            if (token === 'validtoken') {
+                return { user_id: 1, role_id: 2 };
+            } else {
+                throw new Error('Token not valid');
+            }
+        });
+    });
+
+    // Reset les mocks après chaque test
+
+    afterEach(() => {
+        jest.clearAllMocks();  
+    });
+
+
+    it('should modify the user and return 200 if successful', async () => {
+        const user = {
+            id: 1,
+            role_id: 2,
+            first_name: 'Modify',
+            last_name: 'User',
+            email: 'modifyuser@gmail.com',
+            password: 'hashedpassword'
+        };
+
+        const updatedUser = {
+            first_name: 'Modified',
+            last_name: 'User',
+            email: 'modifieduser@gmail.com',
+            password: 'hashedpassword'
+        };
+
+        User.findByPk.mockResolvedValue(user); // Mock la recherche de l'utilisateur
+        User.update = jest.fn().mockResolvedValue([1, [updatedUser]]); // Mock la mise à jour de l'utilisateur
+
+        const response = await request(app)
+            .put('/users/1')
+            .set('Authorization', `Bearer validtoken`)
+            .send({
+                first_name: 'Modified',
+                last_name: 'User',
+                email: 'modifieduser@gmail.com',
+                password: 'hashedpassword' 
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('User modified!');
+    });
+
+    it('should return 404 if user is not found', async () => {
+
+        User.findByPk.mockResolvedValue(null); // Mock l'absence de l'utilisateur
+        jwt.verify.mockResolvedValue({ user_id: 1, role_id: 2 });
+
+
+        const response = await request(app)
+            .put('/users/1')
+            .set('Authorization', `Bearer validtoken`)
+            .send({
+                first_name: 'Modified',
+                last_name: 'User',
+                email: 'modifieduser@gmail.com'
+            });
+
+        expect(response.status).toBe(404);
+    });
+
+    it('should return 400 if something goes wrong', async () => {
+
+        User.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
+        jwt.verify.mockResolvedValue({ user_id: 1, role_id: 2 });
+
+        const response = await request(app)
+            .put('/users/1')
+            .set('Authorization', `Bearer validtoken`)
+            .send({
+                first_name: 'Modified',
+                last_name: 'User',
+                email: 'modifieduser@gmail.com'
+            });
+
+        expect(response.status).toBe(400);
         expect(response.body.error).toBe('Database error');
     });
 });
@@ -426,99 +520,5 @@ describe('DELETE /users/:id', () => {
             .set('Authorization', 'Bearer validtoken');
         
         expect(response.status).not.toBe(401);
-    });
-});
-
-// Test de notre route PUT
-
-describe('PUT /users/:id', () => {
-
-    //Avant chaque test, simulation de notre middleware auth.js et de la fonction jwt.verify
-
-    beforeEach(() => {
-        jwt.verify = jest.fn().mockImplementation((token, secret) => {
-            if (token === 'validtoken') {
-                return { user_id: 1, role_id: 2 };
-            } else {
-                throw new Error('Token not valid');
-            }
-        });
-    });
-
-    // Reset les mocks après chaque test
-
-    afterEach(() => {
-        jest.clearAllMocks();  
-    });
-
-
-    it('should modify the user and return 200 if successful', async () => {
-        const user = {
-            id: 1,
-            role_id: 2,
-            first_name: 'Modify',
-            last_name: 'User',
-            email: 'modifyuser@gmail.com',
-            password: 'hashedpassword'
-        };
-
-        const updatedUser = {
-            first_name: 'Modified',
-            last_name: 'User',
-            email: 'modifieduser@gmail.com',
-            password: 'hashedpassword'
-        };
-
-        User.findByPk.mockResolvedValue(user); // Mock la recherche de l'utilisateur
-        User.update = jest.fn().mockResolvedValue([1, [updatedUser]]); // Mock la mise à jour de l'utilisateur
-
-        const response = await request(app)
-            .put('/users/1')
-            .set('Authorization', `Bearer validtoken`)
-            .send({
-                first_name: 'Modified',
-                last_name: 'User',
-                email: 'modifieduser@gmail.com',
-                password: 'hashedpassword' 
-            });
-
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe('User modified!');
-    });
-
-    it('should return 404 if user is not found', async () => {
-
-        User.findByPk.mockResolvedValue(null); // Mock l'absence de l'utilisateur
-        jwt.verify.mockResolvedValue({ user_id: 1, role_id: 2 });
-
-
-        const response = await request(app)
-            .put('/users/1')
-            .set('Authorization', `Bearer validtoken`)
-            .send({
-                first_name: 'Modified',
-                last_name: 'User',
-                email: 'modifieduser@gmail.com'
-            });
-
-        expect(response.status).toBe(404);
-    });
-
-    it('should return 400 if something goes wrong', async () => {
-
-        User.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
-        jwt.verify.mockResolvedValue({ user_id: 1, role_id: 2 });
-
-        const response = await request(app)
-            .put('/users/1')
-            .set('Authorization', `Bearer validtoken`)
-            .send({
-                first_name: 'Modified',
-                last_name: 'User',
-                email: 'modifieduser@gmail.com'
-            });
-
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe('Database error');
     });
 });

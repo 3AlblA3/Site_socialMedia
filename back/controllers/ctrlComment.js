@@ -5,7 +5,6 @@ exports.getAllComments = async (req, res, next) => {
         const comments = await Comment.findAll();
         res.status(200).json(comments);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -57,7 +56,7 @@ exports.deletePost = async (req, res, next) => {
         const commentId = req.params.id; 
 
         await Comment.destroy({where: { id: commentId }});
-        res.status(200).json({ message: 'Post deleted!' });
+        res.status(200).json({ message: 'Comment deleted!' });
 
         }
      catch (error) {

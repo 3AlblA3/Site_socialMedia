@@ -5,7 +5,6 @@ exports.getAllPostLikes = async (req, res, next) => {
         const postLikes = await PostLike.findAll();
         res.status(200).json(postLikes);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -16,7 +15,6 @@ exports.createPostLike = async (req, res, next) => {
         const postLike = await PostLike.create(newPostLike);
         res.status(200).json(postLike);
     } catch (error) {
-        console.error('Error:', error.message);
         res.status(500).json({ error: error.message });
     }
 };
@@ -27,7 +25,7 @@ exports.getOnePostLike = async (req, res, next) => {
         if (postLike) {
             res.status(200).json(postLike);
         } else {
-            res.status(404).json({ message: 'postLike not found!' });
+            res.status(404).json({ message: 'PostLike not found!' });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -38,7 +36,7 @@ exports.deletePostLike = async (req, res, next) => {
     try {
         const postLikeId = req.params.id; 
         await PostLike.destroy({where: { id: postLikeId }});
-        res.status(200).json({ message: 'postLike deleted!' });
+        res.status(200).json({ message: 'PostLike deleted!' });
 
         }
      catch (error) {

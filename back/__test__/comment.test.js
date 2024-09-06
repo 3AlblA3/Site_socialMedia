@@ -1,11 +1,11 @@
 const request = require('supertest');
 const app = require('../app'); // Remplacez par le chemin correct vers votre app Express
-const Post = require('../models/modelPost');
+const Comment = require('../models/modelComment');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
 
-jest.mock('../models/modelPost');
+jest.mock('../models/modelComment');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
 
@@ -16,84 +16,88 @@ afterAll(async () => {
     await sequelize.close(); 
 });
 
-describe('GET /posts', () => {
+describe('GET /comments', () => {
 
     // Simulation de la requête Get réussie
 
-    it('should return all posts', async () => {
+    it('should return all comments', async () => {
 
         //Simulation d'un tableau de posts dans notre base de données.
-        const mockPosts = [
+        const mockComments = [
             {   id: 1, 
+                post_id: 1,
                 user_id: 1,
-                content: 'test post'
+                content: 'test comment'
             } 
         ];
         
         //Simulation de la fonction findAll qui trouve notre simulation de nos posts.
 
-        Post.findAll.mockResolvedValue(mockPosts);
+        Comment.findAll.mockResolvedValue(mockComments);
 
         //On poste notre requête sur la route get
 
-        const response = await request(app).get('/posts');
+        const response = await request(app).get('/comments');
 
         // Réponses attendues
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual(mockPosts);
+        expect(response.body).toEqual(mockComments);
     });
 
     //Test de notre requête échouée
     
     it('should return 500 if something goes wrong', async () => {
-        Post.findAll.mockRejectedValue(new Error('Database error'));
-        const response = await request(app).get('/posts');
+
+        Comment.findAll.mockRejectedValue(new Error('Database error'));
+
+        const response = await request(app).get('/comments');
+
         expect(response.status).toBe(500);
         });
 });
 
-describe('GET /posts/:id', () => {
-    it('should return the post if found', async () => {
-        const post = {
-            id: 2, 
+describe('GET /comments/:id', () => {
+    it('should return the comment if found', async () => {
+        const comment = {
+            id: 1, 
+            post_id: 1,
             user_id: 1,
-            content: "test post"
+            content: 'test comment'
         };
 
-        Post.findByPk.mockResolvedValue(post);
+        Comment.findByPk.mockResolvedValue(comment);
 
         const response = await request(app)
-            .get('/posts/2');
+            .get('/comments/1');
 
         expect(response.status).toBe(200);
-        expect(Post.findByPk).toHaveBeenCalledWith("2");
+        expect(Comment.findByPk).toHaveBeenCalledWith("1");
 
     });
 
-    it('should return 404 if post is not found', async () => {
-        Post.findByPk.mockResolvedValue(null); // Mock l'absence de l'utilisateur
+    it('should return 404 if comment is not found', async () => {
+        Comment.findByPk.mockResolvedValue(null); // Mock l'absence de l'utilisateur
 
         const response = await request(app)
-            .get('/posts/2');
+            .get('/comments/1');
 
         expect(response.status).toBe(404);
         expect(response.body.error).toBe(undefined);
     });
 
     it('should return 500 if something goes wrong', async () => {
-        Post.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
+        Comment.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
 
         const response = await request(app)
-            .get('/posts/2');
+            .get('/comments/1');
 
         expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error');
     });
 });
 
-describe('POST /posts', () => {
-    //Avant chaque test, simulation de notre middleware auth.js et de la fonction jwt.verify
+describe('POST /comments', () => {
 
     beforeEach(() => {
         jwt.verify = jest.fn().mockImplementation((token, secret) => {
@@ -105,40 +109,39 @@ describe('POST /posts', () => {
         });
     });
 
-    // Reset les mocks après chaque test
-
     afterEach(() => {
         jest.clearAllMocks();  
     });
 
-    it('should create a new post and return 201', async () => {
-        const newPost = {
+    it('should create a new comment and return 201', async () => {
+        const newComment = {
             id: 3, 
+            post_id: 1,
             user_id: 1,
-            content: "new post"
+            content: "new comment"
         }
 
-        Post.create.mockResolvedValue(newPost)
+        Comment.create.mockResolvedValue(newComment)
 
         const response = await request(app)
-            .post('/posts')
+            .post('/comments')
             .set('Authorization', 'Bearer validtoken')
-            .send(newPost)
+            .send(newComment);
 
         expect(response.status).toBe(201);
-        expect(response.body.message).toBe('Post created');
+        expect(response.body.message).toBe('Comment created');
     })
 
     it('should return a 401 status if there is no token', async () => {
-        const newPost = {
-            content: 'post'
+        const newComment = {
+            content: 'comment'
           };
 
-        Post.create.mockResolvedValue(new Error ('Failed to create post'))
+        Comment.create.mockResolvedValue(new Error ('Failed to create comment'))
 
         const response = await request(app)
-          .post('/posts')
-          .send(newPost);
+          .post('/comments')
+          .send(newComment);
 
           expect(response.status).toBe(401);
           expect(response.body.message).toBe('Authorization header missing');
@@ -146,7 +149,7 @@ describe('POST /posts', () => {
     })
 })
 
-describe ('PUT /posts/:id', () => {
+describe ('PUT /comments/:id', () => {
 
     beforeEach(() => {
         jwt.verify = jest.fn().mockImplementation((token, secret) => {
@@ -162,128 +165,130 @@ describe ('PUT /posts/:id', () => {
         jest.clearAllMocks();  
     });
 
-    it('should modify a post', async () => {
-        const oldPost = {
+    it('should modify a comment', async () => {
+        const oldComment = {
             id: 4,
+            post_id: 1,
             user_id: 1,
-            content: "old post"
+            content: "old comment"
         }
-        const updatedPost = {
-            id: 4,
-            user_id: 1,
-            content: "modified post"
+        const updatedComment = {
+            post_id: 1,
+            content: "modified comment"
         }
 
-        Post.findByPk.mockResolvedValue(oldPost);
-        Post.update.mockResolvedValue([1, [updatedPost]])
+        Comment.findByPk.mockResolvedValue(oldComment);
+        Comment.update.mockResolvedValue([1, [updatedComment]])
 
         const response = await request (app)
-            .put('/posts/4')
+            .put('/comments/4')
             .set('Authorization', `Bearer validtoken`)
-            .send(updatedPost);
+            .send(updatedComment);
 
         expect(response.status).toBe(200)
-        expect(response.body.message).toBe("Post modified!")
+        expect(response.body.message).toBe("Comment modified!")
     })
 
     it('should return a 401 status if the token is missing', async () => {
-        const oldPost = {
+        const oldComment = {
             id: 4,
+            post_id: 1,
             user_id: 1,
-            content: "old post"
+            content: "old comment"
         }
-        const updatedPost = {
-            id: 4,
-            user_id: 1,
-            content: "modified post"
+        const updatedComment = {
+            post_id: 1,
+            content: "modified comment"
         }
 
-        Post.findByPk.mockResolvedValue(oldPost);
+        Comment.findByPk.mockResolvedValue(oldComment);
 
         const response = await request (app)
-            .put('/posts/4')
-            .send(updatedPost);
+            .put('/comments/4')
+            .send(updatedComment);
 
         expect(response.status).toBe(401)
         expect(response.body.message).toBe("Authorization header missing")
     }),
 
-    it('should return a 403 status if you try to modify another post', async () => {
-        const oldPost = {
+    it('should return a 403 status if you try to modify another comment', async () => {
+        const oldComment = {
             id: 4,
-            user_id: 3,
-            content: "old post"
+            post_id: 1,
+            user_id: 2,
+            content: "old comment"
         }
-        const updatedPost = {
-            id: 4,
-            user_id: 3,
-            content: "modified post"
+        const updatedComment = {
+            post_id: 1,
+            user_id: 2,
+            content: "modified comment"
         }
 
-        Post.findByPk.mockResolvedValue(oldPost);
+        Comment.findByPk.mockResolvedValue(oldComment);
 
         const response = await request (app)
-            .put('/posts/4')
+            .put('/comments/4')
             .set('Authorization', `Bearer validtoken`)
-            .send(updatedPost);
+            .send(updatedComment);
 
         expect(response.status).toBe(403)
         expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")
     })
 })
 
-describe ('DELETE /posts/:id', () => {
-    it('should delete a post and return a 200 status', async () => {
-        const postToDelete = {
+describe ('DELETE /comments/:id', () => {
+    it('should delete a comment and return a 200 status', async () => {
+        const commentToDelete = {
             id: 5,
+            post_id: 1,
             user_id: 1,
-            content: "post to delete"
+            content: "comment to delete"
         }
 
-        Post.findByPk.mockResolvedValue(postToDelete);
-        Post.destroy.mockResolvedValue(1);
+        Comment.findByPk.mockResolvedValue(commentToDelete);
+        Comment.destroy.mockResolvedValue(1);
 
         const response = await request(app)
-            .delete('/posts/5')
+            .delete('/comments/5')
             .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(200);
-        expect(response.body.message).toBe("Post deleted!")
+        expect(response.body.message).toBe("Comment deleted!")
     });
 
     it('should return a 401 status if the token is missing', async () => {
-        const postToDelete = {
+        const commentToDelete = {
             id: 5,
+            post_id: 1,
             user_id: 1,
-            content: "post to delete"
+            content: "comment to delete"
         }
 
-        Post.findByPk.mockResolvedValue(postToDelete);
+        Comment.findByPk.mockResolvedValue(commentToDelete);
 
         const response = await request (app)
-            .delete('/posts/5')
+            .delete('/comments/5')
 
         expect(response.status).toBe(401)
         expect(response.body.message).toBe("Authorization header missing")
     })
     
-    it('should return a 403 status if you try to delete another post', async () => {
-        const postToDelete = {
-            id: 5,
+    it('should return a 403 status if you try to delete another comment', async () => {
+        const commentToDelete = {
+            id: 6,
+            post_id: 2,
             user_id: 2,
-            content: "post to delete"
+            content: "comment to delete"
         }
 
-        Post.findByPk.mockResolvedValue(postToDelete);
+        Comment.findByPk.mockResolvedValue(commentToDelete);
 
         const response = await request (app)
-            .delete('/posts/5s')
+            .delete('/comments/6')
             .set('Authorization', `Bearer validtoken`)
 
         expect(response.status).toBe(403)
         expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")
     })
-
-
 })
 

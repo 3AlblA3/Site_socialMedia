@@ -20,7 +20,6 @@ exports.createPost = async (req, res, next) => {
         const post = await Post.create(newPost);
         res.status(201).json({ message: 'Post created', post });
     } catch (error) {
-        console.error('Error during post creation:', error); // Ajoutez cette ligne pour le debug
         res.status(400).json({ error: error.message });
     }
 };
