@@ -282,7 +282,7 @@ describe ('PUT /comments/:id', () => {
 
 
 describe ('DELETE /comments/:id', () => {
-    it('should delete a post and return a 200 status', async () => {
+    it('should delete a comment with an image and return a 200 status', async () => {
         const commentToDelete = {
             id: 5,
             post_id: 1,
@@ -301,8 +301,25 @@ describe ('DELETE /comments/:id', () => {
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Comment deleted!")
         expect(fs.unlink).toHaveBeenCalled();
+    });
 
+    it('should delete a comment with no image and return a 200 status', async () => {
+        const commentToDelete = {
+            id: 5,
+            post_id: 1,
+            user_id: 1,
+            content: "comment to delete"
+        }
 
+        Comment.findByPk.mockResolvedValue(commentToDelete);
+        Comment.destroy.mockResolvedValue(1);
+
+        const response = await request(app)
+            .delete('/comments/5')
+            .set('Authorization', 'Bearer validtoken');
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe("Comment deleted!")
     });
 
     it('should return a 401 status if the token is missing', async () => {

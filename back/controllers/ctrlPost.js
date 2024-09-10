@@ -20,6 +20,11 @@ exports.createPost = async (req, res, next) => {
         const newPost = { 
             ...req.body, 
             user_id: req.auth.user_id,  
+            
+            //Ajout de notre imageUrl dans notre objet
+            //req.protocol pour obtenir le premier segment ('http'): req.get('host') pour récupérer le port (ici, 'localhost:3000')
+            //Et enfin req.file.filename pour récupérer le nom du fichier que multer aura donné.
+
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` 
         };
         const post = await Post.create(newPost);
@@ -76,9 +81,15 @@ exports.deletePost = async (req, res, next) => {
     try {
         const postId = req.params.id; 
         const post = await Post.findByPk(postId)
+
+        //Si le post n'existe pas
+
         if (!post) {
             return res.status(404).json({ message: 'Post not found!' });
         }
+
+        // Si le post a une image 
+        
         if (post.imageUrl) {
             const filename = post.imageUrl.split('/images/')[1];
             fs.unlink(`images/${filename}`, async (err) => {

@@ -277,7 +277,7 @@ describe ('PUT /posts/:id', () => {
 
 
 describe ('DELETE /posts/:id', () => {
-    it('should delete a post and return a 200 status', async () => {
+    it('should delete a post with an image and return a 200 status', async () => {
         const postToDelete = {
             id: 5,
             user_id: 1,
@@ -296,6 +296,26 @@ describe ('DELETE /posts/:id', () => {
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Post deleted!");
         expect(fs.unlink).toHaveBeenCalled();
+
+    });
+
+    it('should delete a post with no image and return a 200 status', async () => {
+        const postToDelete = {
+            id: 5,
+            user_id: 1,
+            content: "post to delete"
+        }
+
+        Post.findByPk.mockResolvedValue(postToDelete);
+        Post.destroy.mockResolvedValue(1);
+        
+
+        const response = await request(app)
+            .delete('/posts/5')
+            .set('Authorization', 'Bearer validtoken');
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe("Post deleted!");
 
     });
 
