@@ -34,12 +34,12 @@ describe('GET /posts', () => {
         const mockPosts = [
             {   id: 1, 
                 user_id: 1,
-                imageUrl: "http://test.com/image1.jpg",
+                image_url: "http://test.com/image1.jpg",
                 content: 'test post'
             },
             {   id: 2, 
                 user_id: 2,
-                imageUrl: "http://test.com/image2.jpg",
+                image_url: "http://test.com/image2.jpg",
                 content: 'test post 2'
             } 
         ];
@@ -72,7 +72,7 @@ describe('GET /posts/:id', () => {
         const post = {
             id: 1, 
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "test post"
         };
 
@@ -130,7 +130,7 @@ describe('POST /posts', () => {
         const newPost = {
             id: 3, 
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "new post"
         }
 
@@ -207,13 +207,13 @@ describe ('PUT /posts/:id', () => {
         const oldPost = {
             id: 4,
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "old post"
         }
         const updatedPost = {
             id: 4,
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "modified post"
         }
 
@@ -281,7 +281,7 @@ describe ('DELETE /posts/:id', () => {
         const postToDelete = {
             id: 5,
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "post to delete"
         }
 

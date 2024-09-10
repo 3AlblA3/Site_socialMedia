@@ -36,7 +36,7 @@ describe('GET /comments', () => {
             {   id: 1, 
                 post_id: 1,
                 user_id: 1,
-                imageUrl: "http://test.com/image1.jpg",
+                image_url: "http://test.com/image1.jpg",
                 content: 'test comment'
             } 
         ];
@@ -73,7 +73,7 @@ describe('GET /comments/:id', () => {
             id: 1, 
             post_id: 1,
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: 'test comment'
         };
 
@@ -129,7 +129,7 @@ describe('POST /comments', () => {
             id: 3, 
             post_id: 1,
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "new comment"
         }
 
@@ -207,14 +207,14 @@ describe ('PUT /comments/:id', () => {
             id: 4,
             user_id: 1,
             post_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "old comment"
         }
         const updatedComment = {
             id: 4,
             user_id: 1,
             post_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "modified comment"
         }
 
@@ -287,7 +287,7 @@ describe ('DELETE /comments/:id', () => {
             id: 5,
             post_id: 1,
             user_id: 1,
-            imageUrl: "http://test.com/image1.jpg",
+            image_url: "http://test.com/image1.jpg",
             content: "comment to delete"
         }
 

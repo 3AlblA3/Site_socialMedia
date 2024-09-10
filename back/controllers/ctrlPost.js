@@ -25,7 +25,7 @@ exports.createPost = async (req, res, next) => {
             //req.protocol pour obtenir le premier segment ('http'): req.get('host') pour récupérer le port (ici, 'localhost:3000')
             //Et enfin req.file.filename pour récupérer le nom du fichier que multer aura donné.
 
-            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` 
+            image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` 
         };
         const post = await Post.create(newPost);
         res.status(201).json({ message: 'Post created', post });
@@ -57,7 +57,7 @@ exports.updatePost = async (req, res, next) => {
         const postObject = req.file ? {
             ...req.body,
             user_id: req.auth.user_id,
-            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+            image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         } : {
             ...req.body,
             user_id: req.auth.user_id,
@@ -90,8 +90,8 @@ exports.deletePost = async (req, res, next) => {
 
         // Si le post a une image 
         
-        if (post.imageUrl) {
-            const filename = post.imageUrl.split('/images/')[1];
+        if (post.image_url) {
+            const filename = post.image_url.split('/images/')[1];
             fs.unlink(`images/${filename}`, async (err) => {
                 if (err) {
                     console.error('Error deleting image:', err);

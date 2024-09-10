@@ -15,7 +15,7 @@ exports.createComment = async (req, res, next) => {
         const newComment = { 
             ...req.body, 
             user_id: req.auth.user_id,
-            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+            image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         };
         const comment = await Comment.create(newComment);
         res.status(201).json({ message: 'Comment created', comment });
@@ -45,7 +45,7 @@ exports.updateComment = async (req, res, next) => {
         const commentObject = req.file ? {
             ...req.body,
             user_id: req.auth.user_id,
-            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+            image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
         } : {
             ...req.body,
             user_id: req.auth.user_id,
@@ -70,8 +70,8 @@ exports.deleteComment = async (req, res, next) => {
         if (!comment) {
             return res.status(404).json({ message: 'Comment not found!' });
         }
-        if (comment.imageUrl) {
-            const filename = comment.imageUrl.split('/images/')[1];
+        if (comment.image_url) {
+            const filename = comment.image_url.split('/images/')[1];
             fs.unlink(`images/${filename}`, async (err) => {
                 if (err) {
                     console.error('Error deleting image:', err);
