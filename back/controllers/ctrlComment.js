@@ -1,4 +1,5 @@
-const Comment = require("../models/modelComment")
+const Comment = require("../models/modelComment");
+const fs = require('fs');
 
 exports.getAllComments = async (req, res, next) => {
     try {
@@ -11,7 +12,11 @@ exports.getAllComments = async (req, res, next) => {
 
 exports.createComment = async (req, res, next) => {
     try {
-        const newComment = { ...req.body, user_id: req.auth.user_id};
+        const newComment = { 
+            ...req.body, 
+            user_id: req.auth.user_id,
+            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        };
         const comment = await Comment.create(newComment);
         res.status(201).json({ message: 'Comment created', comment });
     } catch (error) {
@@ -34,10 +39,18 @@ exports.getOneComment = async (req, res, next) => {
 };
 
 //UPDATE
-exports.updatePost = async (req, res, next) => {
+exports.updateComment = async (req, res, next) => {
     try {
-        const commentId = req.params.id; 
-        const commentObject = req.body;
+        const commentId = req.params.id;  
+        const commentObject = req.file ? {
+            ...req.body,
+            user_id: req.auth.user_id,
+            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        } : {
+            ...req.body,
+            user_id: req.auth.user_id,
+        }
+        
         delete commentObject.id; 
 
         // Mettre à jour l'utilisateur
@@ -45,21 +58,33 @@ exports.updatePost = async (req, res, next) => {
 
         res.status(200).json({ message: 'Comment modified!' });
 
-    } catch (error) {
+    }catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
-exports.deletePost = async (req, res, next) => {
+exports.deleteComment = async (req, res, next) => {
     try {
-        
         const commentId = req.params.id; 
-
-        await Comment.destroy({where: { id: commentId }});
-        res.status(200).json({ message: 'Comment deleted!' });
-
+        const comment = await Comment.findByPk(commentId)
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found!' });
         }
-     catch (error) {
+        if (comment.imageUrl) {
+            const filename = comment.imageUrl.split('/images/')[1];
+            fs.unlink(`images/${filename}`, async (err) => {
+                if (err) {
+                    console.error('Error deleting image:', err);
+                }
+                await Comment.destroy({where: { id: commentId }});
+                res.status(200).json({ message: 'Comment deleted!' });
+            });
+        } else {
+            await Comment.destroy({where: { id: commentId }});
+            res.status(200).json({ message: 'Comment deleted!' });
+        }
+    }
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 };

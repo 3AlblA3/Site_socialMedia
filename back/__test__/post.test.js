@@ -1,13 +1,21 @@
 const request = require('supertest');
 const app = require('../app'); // Remplacez par le chemin correct vers votre app Express
 const Post = require('../models/modelPost');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
+const fs = require('fs');
 
+fs.unlink = jest.fn((path, callback) => callback(null));
 jest.mock('../models/modelPost');
-jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
+jest.mock('../middlewares/multer-config', () => {
+    return (req, res, next) => {
+      req.file = {
+        filename: 'mocked-filename.jpg'
+      };
+      next();
+    };
+});
 
 beforeAll(async () => {
     await sequelize.authenticate();
@@ -26,7 +34,13 @@ describe('GET /posts', () => {
         const mockPosts = [
             {   id: 1, 
                 user_id: 1,
+                imageUrl: "http://test.com/image1.jpg",
                 content: 'test post'
+            },
+            {   id: 2, 
+                user_id: 2,
+                imageUrl: "http://test.com/image2.jpg",
+                content: 'test post 2'
             } 
         ];
         
@@ -56,18 +70,19 @@ describe('GET /posts', () => {
 describe('GET /posts/:id', () => {
     it('should return the post if found', async () => {
         const post = {
-            id: 2, 
+            id: 1, 
             user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: "test post"
         };
 
         Post.findByPk.mockResolvedValue(post);
 
         const response = await request(app)
-            .get('/posts/2');
+            .get('/posts/1');
 
         expect(response.status).toBe(200);
-        expect(Post.findByPk).toHaveBeenCalledWith("2");
+        expect(Post.findByPk).toHaveBeenCalledWith("1");
 
     });
 
@@ -75,7 +90,7 @@ describe('GET /posts/:id', () => {
         Post.findByPk.mockResolvedValue(null); // Mock l'absence de l'utilisateur
 
         const response = await request(app)
-            .get('/posts/2');
+            .get('/posts/1');
 
         expect(response.status).toBe(404);
         expect(response.body.error).toBe(undefined);
@@ -85,7 +100,7 @@ describe('GET /posts/:id', () => {
         Post.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
 
         const response = await request(app)
-            .get('/posts/2');
+            .get('/posts/1');
 
         expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error');
@@ -115,6 +130,7 @@ describe('POST /posts', () => {
         const newPost = {
             id: 3, 
             user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: "new post"
         }
 
@@ -122,8 +138,9 @@ describe('POST /posts', () => {
 
         const response = await request(app)
             .post('/posts')
+            .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
             .set('Authorization', 'Bearer validtoken')
-            .send(newPost)
+            .field('content', newPost.content);
 
         expect(response.status).toBe(201);
         expect(response.body.message).toBe('Post created');
@@ -186,6 +203,32 @@ describe ('PUT /posts/:id', () => {
         expect(response.body.message).toBe("Post modified!")
     })
 
+    it('should update a post with a new image', async () => {
+        const oldPost = {
+            id: 4,
+            user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
+            content: "old post"
+        }
+        const updatedPost = {
+            id: 4,
+            user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
+            content: "modified post"
+        }
+
+        Post.update.mockResolvedValue([1]);
+  
+        const response = await request(app)
+          .put('/posts/4')
+          .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
+          .set('Authorization', 'Bearer validtoken')
+          .field('content', updatedPost.content);
+  
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({ message: 'Post modified!' });
+      });
+
     it('should return a 401 status if the token is missing', async () => {
         const oldPost = {
             id: 4,
@@ -232,23 +275,28 @@ describe ('PUT /posts/:id', () => {
     })
 })
 
+
 describe ('DELETE /posts/:id', () => {
     it('should delete a post and return a 200 status', async () => {
         const postToDelete = {
             id: 5,
             user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: "post to delete"
         }
 
         Post.findByPk.mockResolvedValue(postToDelete);
         Post.destroy.mockResolvedValue(1);
+        
 
         const response = await request(app)
             .delete('/posts/5')
             .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(200);
-        expect(response.body.message).toBe("Post deleted!")
+        expect(response.body.message).toBe("Post deleted!");
+        expect(fs.unlink).toHaveBeenCalled();
+
     });
 
     it('should return a 401 status if the token is missing', async () => {
@@ -286,4 +334,3 @@ describe ('DELETE /posts/:id', () => {
 
 
 })
-

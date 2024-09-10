@@ -1,13 +1,22 @@
 const request = require('supertest');
 const app = require('../app'); // Remplacez par le chemin correct vers votre app Express
 const Comment = require('../models/modelComment');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
+const fs = require('fs')
 
+fs.unlink = jest.fn((path, callback) => callback(null));
 jest.mock('../models/modelComment');
-jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
+jest.mock('../middlewares/multer-config', () => {
+    return (req, res, next) => {
+      req.file = {
+        filename: 'mocked-filename.jpg'
+      };
+      next();
+    };
+});
+
 
 beforeAll(async () => {
     await sequelize.authenticate();
@@ -27,6 +36,7 @@ describe('GET /comments', () => {
             {   id: 1, 
                 post_id: 1,
                 user_id: 1,
+                imageUrl: "http://test.com/image1.jpg",
                 content: 'test comment'
             } 
         ];
@@ -63,6 +73,7 @@ describe('GET /comments/:id', () => {
             id: 1, 
             post_id: 1,
             user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: 'test comment'
         };
 
@@ -118,6 +129,7 @@ describe('POST /comments', () => {
             id: 3, 
             post_id: 1,
             user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: "new comment"
         }
 
@@ -125,8 +137,10 @@ describe('POST /comments', () => {
 
         const response = await request(app)
             .post('/comments')
+            .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
+            .field('content', newComment.content)
             .set('Authorization', 'Bearer validtoken')
-            .send(newComment);
+            
 
         expect(response.status).toBe(201);
         expect(response.body.message).toBe('Comment created');
@@ -168,17 +182,16 @@ describe ('PUT /comments/:id', () => {
     it('should modify a comment', async () => {
         const oldComment = {
             id: 4,
-            post_id: 1,
             user_id: 1,
+            post_id: 1,
             content: "old comment"
         }
         const updatedComment = {
-            post_id: 1,
             content: "modified comment"
         }
 
         Comment.findByPk.mockResolvedValue(oldComment);
-        Comment.update.mockResolvedValue([1, [updatedComment]])
+        Comment.update.mockResolvedValue([1, [{ ...oldComment, ...updatedComment }]])
 
         const response = await request (app)
             .put('/comments/4')
@@ -189,14 +202,44 @@ describe ('PUT /comments/:id', () => {
         expect(response.body.message).toBe("Comment modified!")
     })
 
-    it('should return a 401 status if the token is missing', async () => {
+    it('should update a comment with a new image', async () => {
         const oldComment = {
             id: 4,
-            post_id: 1,
             user_id: 1,
+            post_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: "old comment"
         }
         const updatedComment = {
+            id: 4,
+            user_id: 1,
+            post_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
+            content: "modified comment"
+        }
+
+        Comment.update.mockResolvedValue([1]);
+  
+        const response = await request(app)
+          .put('/comments/4')
+          .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
+          .set('Authorization', 'Bearer validtoken')
+          .field('content', updatedComment.content);
+  
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({ message: 'Comment modified!' });
+      });
+
+    it('should return a 401 status if the token is missing', async () => {
+        const oldComment = {
+            id: 4,
+            user_id: 1,
+            post_id: 1,
+            content: "old comment"
+        }
+        const updatedComment = {
+            id: 4,
+            user_id: 1,
             post_id: 1,
             content: "modified comment"
         }
@@ -214,13 +257,14 @@ describe ('PUT /comments/:id', () => {
     it('should return a 403 status if you try to modify another comment', async () => {
         const oldComment = {
             id: 4,
+            user_id: 3,
             post_id: 1,
-            user_id: 2,
             content: "old comment"
         }
         const updatedComment = {
+            id: 4,
+            user_id: 3,
             post_id: 1,
-            user_id: 2,
             content: "modified comment"
         }
 
@@ -236,12 +280,14 @@ describe ('PUT /comments/:id', () => {
     })
 })
 
+
 describe ('DELETE /comments/:id', () => {
-    it('should delete a comment and return a 200 status', async () => {
+    it('should delete a post and return a 200 status', async () => {
         const commentToDelete = {
             id: 5,
             post_id: 1,
             user_id: 1,
+            imageUrl: "http://test.com/image1.jpg",
             content: "comment to delete"
         }
 
@@ -254,6 +300,9 @@ describe ('DELETE /comments/:id', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Comment deleted!")
+        expect(fs.unlink).toHaveBeenCalled();
+
+
     });
 
     it('should return a 401 status if the token is missing', async () => {
@@ -273,10 +322,10 @@ describe ('DELETE /comments/:id', () => {
         expect(response.body.message).toBe("Authorization header missing")
     })
     
-    it('should return a 403 status if you try to delete another comment', async () => {
+    it('should return a 403 status if you try to delete another post', async () => {
         const commentToDelete = {
-            id: 6,
-            post_id: 2,
+            id: 5,
+            post_id: 1,
             user_id: 2,
             content: "comment to delete"
         }
@@ -284,11 +333,12 @@ describe ('DELETE /comments/:id', () => {
         Comment.findByPk.mockResolvedValue(commentToDelete);
 
         const response = await request (app)
-            .delete('/comments/6')
+            .delete('/comments/5s')
             .set('Authorization', `Bearer validtoken`)
 
         expect(response.status).toBe(403)
         expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")
     })
-})
 
+
+})
