@@ -1,4 +1,6 @@
 import { Fragment } from "react"
+import './assets/Footer.css'
+
 
 // Les fonctions sont des composants
 function Footer() {

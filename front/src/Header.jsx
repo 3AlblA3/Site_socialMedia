@@ -1,4 +1,6 @@
-import { Fragment } from "react"
+import { Fragment } from "react";
+import { Link } from "react-router-dom"; // Importer Link
+import './assets/Header.css'
 
 // Les fonctions sont des composants
 function Header() {
@@ -7,9 +9,13 @@ function Header() {
 
     <Fragment>
         <header>
-            <a href="index.html"><h1>Social Media</h1></a>
-            <a href="signup.html"><h3>Sign up</h3></a>
-            <a href="login.html"><h3>Log in</h3></a>
+            <section>
+            <Link to="/"><h1>Social Media</h1></Link>
+            </section>
+            <section>
+            <Link to="/signup"><h3>Sign up</h3></Link>
+            <Link to="/login"><h3>Log in</h3></Link>
+            </section>
         </header>
     </Fragment>
   )

@@ -17,16 +17,14 @@ exports.getAllPosts = async (req, res, next) => {
 
 exports.createPost = async (req, res, next) => {
     try {
-        const newPost = { 
-            ...req.body, 
-            user_id: req.auth.user_id,  
-            
-            //Ajout de notre imageUrl dans notre objet
-            //req.protocol pour obtenir le premier segment ('http'): req.get('host') pour récupérer le port (ici, 'localhost:3000')
-            //Et enfin req.file.filename pour récupérer le nom du fichier que multer aura donné.
-
-            image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` 
-        };
+        const newPost = req.file ? {
+            ...req.body,
+            user_id: req.auth.user_id,
+            image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        } : {
+            ...req.body,
+            user_id: req.auth.user_id,
+        }
         const post = await Post.create(newPost);
         res.status(201).json({ message: 'Post created', post });
     } catch (error) {

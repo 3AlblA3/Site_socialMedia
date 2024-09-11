@@ -1,12 +1,3 @@
-header{
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  background-color: bisque;
-  padding: 1rem;
-  margin-bottom: 2rem;
-}
 
 main{
   padding: 1rem;
@@ -40,11 +31,3 @@ form{
   justify-content: center;
 }
 
-footer {
-  height: 3rem;
-  background-color:cornsilk;
-  display: flex;
-  justify-content: center;
-  padding: 2rem
-
-}

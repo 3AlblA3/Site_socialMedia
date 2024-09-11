@@ -124,7 +124,7 @@ describe('POST /comments', () => {
         jest.clearAllMocks();  
     });
 
-    it('should create a new comment and return 201', async () => {
+    it('should create a new comment with an image and return 201', async () => {
         const newComment = {
             id: 3, 
             post_id: 1,
@@ -139,6 +139,26 @@ describe('POST /comments', () => {
             .post('/comments')
             .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
             .field('content', newComment.content)
+            .set('Authorization', 'Bearer validtoken')
+            
+
+        expect(response.status).toBe(201);
+        expect(response.body.message).toBe('Comment created');
+    })
+
+    it('should create a new comment with no image and return 201', async () => {
+        const newComment = {
+            id: 3, 
+            post_id: 1,
+            user_id: 1,
+            content: "new comment"
+        }
+
+        Comment.create.mockResolvedValue(newComment)
+
+        const response = await request(app)
+            .post('/comments')
+            .send(newComment)
             .set('Authorization', 'Bearer validtoken')
             
 

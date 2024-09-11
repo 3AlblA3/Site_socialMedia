@@ -126,7 +126,7 @@ describe('POST /posts', () => {
         jest.clearAllMocks();  
     });
 
-    it('should create a new post and return 201', async () => {
+    it('should create a new post with an image and return 201', async () => {
         const newPost = {
             id: 3, 
             user_id: 1,
@@ -141,6 +141,24 @@ describe('POST /posts', () => {
             .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
             .set('Authorization', 'Bearer validtoken')
             .field('content', newPost.content);
+
+        expect(response.status).toBe(201);
+        expect(response.body.message).toBe('Post created');
+    })
+
+    it('should create a new post with no image and return 201', async () => {
+        const newPost = {
+            id: 3, 
+            user_id: 1,
+            content: "new post"
+        }
+
+        Post.create.mockResolvedValue(newPost)
+
+        const response = await request(app)
+            .post('/posts')
+            .set('Authorization', 'Bearer validtoken')
+            .send(newPost);
 
         expect(response.status).toBe(201);
         expect(response.body.message).toBe('Post created');
