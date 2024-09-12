@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Header from './Header'; // Assure-toi que le chemin est correct
-import Footer from './Footer'; // Assure-toi que le chemin est correct
-import HomePage from './HomePage';
-import Login from './Login';
-import Signup from './Signup';
+import Header from './components/Header'; 
+import Footer from './components/Footer';
+import HomePage from './pages/HomePage';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
 
 function App() {
@@ -17,7 +17,6 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        {/* Ajoute d'autres routes ici si nécessaire */}
       </Routes>
     </main>
   
@@ -27,3 +26,4 @@ function App() {
 }
 
 export default App;
+

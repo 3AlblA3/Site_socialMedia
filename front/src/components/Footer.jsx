@@ -1,5 +1,5 @@
 import { Fragment } from "react"
-import './assets/Footer.css'
+import '../styles/Footer.css'
 
 
 // Les fonctions sont des composants

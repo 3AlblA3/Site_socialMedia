@@ -1,9 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 
-
-import { Link } from 'react-router-dom';
-
 function HomePage() {
 
     //Hooks pour stocker les données de nos différents fetch
@@ -13,10 +10,18 @@ function HomePage() {
     const [commentsMap, setCommentsMap] = useState([]);
     const [postLikesMap, setPostLikesMap] = useState([]);
     const [commentLikesMap, setCommentLikesMap] = useState([]);
+    const [inputPost, setInputPost] = useState([]);
   
    // useEffect est utilisé pour effectuer l'appel API une fois que le composant est monté
   
     useEffect(() => {
+
+      const createPost = async () => {
+        const post = {
+          content
+        }
+      }
+
       const getPosts = async () => {
         try {
   
