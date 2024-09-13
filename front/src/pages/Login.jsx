@@ -17,12 +17,12 @@ function Login() {
 
   //Création de notre fonction onSubmit
 
-  const loginSubmit = async (event) => {
+   async function loginSubmit(event) {
     event.preventDefault();
 
     const user = {
       email,
-      password,
+      password
     };
 
     try {
@@ -43,7 +43,7 @@ function Login() {
 
       } else {
 
-        //En cas de réussite, renvoie d'une réponse réussie et renvoie du jsonwebtoken dans le local storage
+        //En cas de réussite, renvoi d'une réponse réussie et renvoi du jsonwebtoken dans le local storage
 
         const responseData = await response.json();
         console.log('Success:', responseData);
@@ -60,7 +60,7 @@ function Login() {
   //Partie Html
 
   return (
-    <section id="main__section">
+    <section id="posts">
 
       {/* Formulaire */}
 

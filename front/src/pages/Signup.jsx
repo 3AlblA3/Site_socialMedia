@@ -20,7 +20,7 @@ function Signup() {
 
   //Création de notre fonction onSubmit
 
-  const signupSubmit = async (event) => {
+  async function signupSubmit(event) {
     event.preventDefault();
 
     // Mise en place de nos regex

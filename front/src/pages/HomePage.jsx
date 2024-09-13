@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import CreatePost from '../components/CreatePost';
 
 function HomePage() {
 
@@ -10,19 +11,24 @@ function HomePage() {
     const [commentsMap, setCommentsMap] = useState([]);
     const [postLikesMap, setPostLikesMap] = useState([]);
     const [commentLikesMap, setCommentLikesMap] = useState([]);
-    const [inputPost, setInputPost] = useState([]);
+    const [user_id, setUserId] = useState(null);
+    const [modifiedContent, setModifiedContent] = useState(''); // Ajout de l'état pour modifiedContent
   
    // useEffect est utilisé pour effectuer l'appel API une fois que le composant est monté
   
     useEffect(() => {
 
-      const createPost = async () => {
-        const post = {
-          content
-        }
+      //Récupération du token
+
+      const token = localStorage.getItem('authToken');
+
+      if (token) {
+        // Décodage du token pour récupérer l'user_id
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        setUserId(decodedToken.user_id);
       }
 
-      const getPosts = async () => {
+       async function getPosts() {
         try {
   
           // Fetch des données des différentes API
@@ -89,15 +95,86 @@ function HomePage() {
       };
   
       getPosts();
+
+      
     }, []); // Le tableau vide [] assure que le fetch ne se fait qu'une seule fois, au montage
+
+    //Fonction suppression des posts 
+
+    async function deletePost(id) {
+
+      const token = localStorage.getItem('authToken');
+
+      try {
+    
+        const response = await fetch(`http://localhost:3000/posts/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+
+          }
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const responseData = await response.json();
+        console.log('Post deleted successfully:', responseData);
+        alert('Post supprimé avec succès!');
+  
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Erreur lors de la suppression : ' + error.message);
+      }
+    }
+
+    async function modifyPost(id) {
+      
+      const token = localStorage.getItem('authToken');
+      const post = { content: modifiedContent };
+
+      try {
+    
+        const response = await fetch(`http://localhost:3000/posts/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(post)
+        });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const responseData = await response.json();
+        console.log('Post modified successfully:', responseData);
+        alert('Post modifié avec succès!');
+        window.location.reload();
+
+  
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Erreur lors de la suppression : ' + error.message);
+      }
+    }
   
     return (
+
+      <>
+      <CreatePost />
+
       <section id="posts">
+
+        {/* On fait un map de nos posts pour en un afficher un par article, équivalent d'une boucle for of */}
+
         {posts.map((post) => {
-          const author = usersMap[post.user_id]; //On cherche l'auteur du post par son user_id 
+          const author = usersMap[post.user_id];
           const postComments = commentsMap[post.id] || [];
           const postLikesCount = postLikesMap[post.id] || 0;
-  
+          
           return (
             <article key={post.id}>
               <h3>{author}</h3>
@@ -109,10 +186,19 @@ function HomePage() {
                   <li key={index}>{comment}</li>
                 ))}
               </ul>
+              {post.user_id === user_id && (
+                <div>              
+                  <input type="text" name="content" id="content" value={modifiedContent}
+                    onChange={(e) => setModifiedContent(e.target.value)} ></input>
+                  <button onClick={() => modifyPost(post.id)}>Modifier</button>
+                  <button onClick={() => deletePost(post.id)}>Supprimer</button>
+                </div>  
+              )}
             </article>
           );
         })}
       </section>
+      </>
     );
   };
   
