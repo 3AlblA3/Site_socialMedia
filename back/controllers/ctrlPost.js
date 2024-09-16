@@ -17,7 +17,7 @@ exports.getAllPosts = async (req, res, next) => {
 
 exports.createPost = async (req, res, next) => {
     try {
-        const newPost = req.file ? {
+        const newPost = req.file ? { //Condition s'il y a une image liée avec le post ou non
             ...req.body,
             user_id: req.auth.user_id,
             image_url: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`

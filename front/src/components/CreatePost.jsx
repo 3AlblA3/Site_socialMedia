@@ -12,7 +12,6 @@ function CreatePost() {
     const postURL = "http://localhost:3000/posts"
 
     async function FormPost(event) {
-        event.preventDefault()
         const post = {content}
 
         try {
@@ -33,6 +32,8 @@ function CreatePost() {
                 const responseData = await response.json();
                 console.log('Success:', responseData);
                 alert('post réussi !');
+                window.location.reload();
+
             } 
         catch (error) {
                 console.error('Error:', error);
