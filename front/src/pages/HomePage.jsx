@@ -19,6 +19,7 @@ function HomePage() {
   const [modifiedContent, setModifiedContent] = useState(''); 
   const [modifiedCommentContent, setModifiedCommentContent] = useState(''); 
   const [newComments, setNewComments] = useState({}); 
+  const [showComments, setShowComments] = useState({});
 
   // useEffect est utilisé pour effectuer le call API une fois que le composant est monté
   useEffect(() => {
@@ -153,6 +154,13 @@ function HomePage() {
     }
   }
 
+  function toggleComments(post_id) {
+    setShowComments(prevState => ({
+      ...prevState,
+      [post_id]: !prevState[post_id] // Bascule l'affichage des commentaires pour chaque post
+    }));
+  }
+
   // Rappel de nos fonctions de gestion des commentaires avec les paramètres nécéssaires
 
   function handleAddComment (post_id) {
@@ -168,58 +176,85 @@ function HomePage() {
     deleteComment(comment_id); // Supprime un commentaire
   };
 
+  console.log(posts); // Check the structure of your posts array and ensure created_at is present
+
+
   return (
     <>
       <CreatePost />
 
-      <section id="posts">
-        {posts.map((post) => {
+      <section className="posts" id="posts">
+        {posts
+        .slice() // Create a shallow copy of the posts array to avoid mutating the original array
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort posts by most recent
+        .map((post) => {
           const author = usersMap[post.user_id];
           const postComments = commentsMap[post.id] || [];
           const postLikesCount = postLikesMap[post.id] || 0;
 
           return (
             <article key={post.id}>
-              <h3>{author}</h3>
-              <p>{post.content}</p>
-              <p>Likes: {postLikesCount}</p>
-              <p>Comments: </p>
-              <ul>
-                {postComments.map((comment, index) => {
-                  const commentLikesCount = commentLikesMap[comment.id] || 0; // Affiche le nombre de likes par commentaire, sinon 0
-                  const isAuthor = comment.user_id === user_id; // Vérifie si l'utilisateur connecté est l'auteur du commentaire
-                  return (
-                    <li key={index}>
-                      {comment.content}
-                      <span> - Likes: {commentLikesCount}</span>
-                      {/* Affiche les boutons de modification et de suppression uniquement si l'utilisateur est l'auteur du commentaire */}
-                      {isAuthor && (
-                        <>
-                         <input type="text" name="modifiedCommentContent" id="modifiedCommentContent" value={modifiedCommentContent}
-                    onChange={(e) => setModifiedCommentContent(e.target.value)}/>
-                          <button onClick={() => handleModifyComment(comment.id, modifiedCommentContent)}>Modifier</button>
-                          <button onClick={() => handleDeleteComment(comment.id)}>Supprimer</button>
-                        </>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {/* Formulaire pour ajouter un commentaire */}
-              <input type="text" placeholder="Ajouter un commentaire" value={newComments[post.id] || ''}
-                onChange={(e) => setNewComments({ ...newComments, [post.id]: e.target.value })}/>
-              <button onClick={() => handleAddComment(post.id)}>
-                Envoyer
-              </button>
-
-              {post.user_id === user_id && (
-                <div>
-                  <input type="text" name="content" id="content" value={modifiedContent}
-                    onChange={(e) => setModifiedContent(e.target.value)}/>
-                  <button onClick={() => modifyPost(post.id)}>Modifier le post</button>
-                  <button onClick={() => deletePost(post.id)}>Supprimer le post</button>
+              <div className = "article__header">
+                <h3>{author}</h3>
+                <div className ="article__header__menu">
+                  <img src="/dots.png" alt="menu" className="logos"/>
+                  <ul className="article__header__menu__deroulant">
+                        <li><img src="/stylo.png" alt="modifier post" className="article__header__menu__deroulant__icon"></img></li>
+                        <li><img src="/trash.png" alt="supprimer post" className="article__header__menu__deroulant__icon"></img></li>
+                  </ul>
                 </div>
+              </div>
+              {/* Affichage d'une image s'il y a */}
+              {post.image_url && (
+                <img src={post.image_url} alt="Post image" className="post__image"/>)}
+              <p>{post.content}</p>
+              <div className='likes'>
+                <img src="/like.png" alt="like" className='logos' />
+                <p>{postLikesCount}</p>
+              </div>
+
+              {/* Affichage des commentaires */}
+
+              <div className="article__comments">
+                <p className="article__comments__menu" onClick={() => toggleComments(post.id)}>Voir les commentaires</p>
+                <div className={`article__comments__menu__deroulants ${showComments[post.id] ? 'visible' : ''}`}>
+                 <ul>
+                   {postComments.map((comment, index) => {
+                     const commentLikesCount = commentLikesMap[comment.id] || 0; 
+                     const isAuthor = comment.user_id === user_id; 
+                     return (
+                        <li key={index}>
+                         {comment.content}
+                          <div className='likes'>
+                            <img src="/like.png" alt="like" className='logos' />
+                            <p>{commentLikesCount}</p>
+                          </div>
+                          {/* Affiche les boutons de modification et de suppression uniquement si l'utilisateur est l'auteur du commentaire */}
+                          {isAuthor && (
+                            <>
+                              <input type="text" name="modifiedCommentContent" id="modifiedCommentContent" value={modifiedCommentContent}
+                              onChange={(e) => setModifiedCommentContent(e.target.value)}/>
+                              <button onClick={() => handleModifyComment(comment.id, modifiedCommentContent)}>Modifier</button>
+                              <button onClick={() => handleDeleteComment(comment.id)}>Supprimer</button>
+                            </>
+                         )}
+                        </li>
+                      );
+                  })}
+                  </ul>
+                  {/* Formulaire pour ajouter un commentaire */}
+                  <input type="text" placeholder="Ajouter un commentaire" value={newComments[post.id] || ''}
+                  onChange={(e) => setNewComments({ ...newComments, [post.id]: e.target.value })}/>
+                  <button onClick={() => handleAddComment(post.id)}>Envoyer</button>
+                </div>
+              </div>
+              {post.user_id === user_id && (
+              <div>
+                <input type="text" name="content" id="content" value={modifiedContent}
+                  onChange={(e) => setModifiedContent(e.target.value)}/>
+                <button onClick={() => modifyPost(post.id)}>Modifier le post</button>
+                <button onClick={() => deletePost(post.id)}>Supprimer le post</button>
+              </div>
               )}
             </article>
           );

@@ -9,8 +9,13 @@ const User = sequelize.define(
         last_name : { type: DataTypes.STRING, allowNull: false },
         email: { type: DataTypes.STRING, allowNull: false },
         password: { type: DataTypes.STRING, allowNull: false },
+        created_at: { type: DataTypes.DATE, allowNull: false },
+        updated_at: { type: DataTypes.DATE, allowNull: false},
+        deleted_at: { type: DataTypes.DATE, allowNull: false}        
     },
-    {tableName: 'users'} // Nom de la table dans la base de données
+    {tableName: 'users',
+    underscored: true
+    } //
 
 );
 

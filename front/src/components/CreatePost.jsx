@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../styles/CreatePost.css'
 
 function CreatePost() {
 
@@ -9,25 +10,31 @@ function CreatePost() {
         return;
       }
     const [content, setContent] = useState('')
+    const [image_url, setImageUrl] = useState(null)
+
     const postURL = "http://localhost:3000/posts"
 
     async function FormPost(event) {
-        const post = {content}
+        event.preventDefault()
+        const post = new FormData();
+        post.append('content', content);
+        if (image_url) {
+            post.append('image_url', image_url)
+        }
 
         try {
             const response = await fetch(postURL, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
-                  "Authorization": `Bearer ${token}`,
-
+                  "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(post),
+                body: post,
               });
 
               if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }        
+                const errorData = await response.text(); 
+                throw new Error(`HTTP error! status: ${response.status}.`);
+            }
                 
                 const responseData = await response.json();
                 console.log('Success:', responseData);
@@ -36,21 +43,24 @@ function CreatePost() {
 
             } 
         catch (error) {
-                console.error('Error:', error);
-                alert('Erreur');
+            console.error('Error:', error);
+            alert(`Erreur: ${error.message}`);
         }
     };
 
-    return (
+return (
         <section id="createPost">
             <form onSubmit={FormPost} id="formPost">
-                <label htmlFor="content">Quelque chose à dire?</label> 
-                <input type="text" name="content" id="content" value={content}
-              onChange={(e) => setContent(e.target.value)} required/>
+                <label htmlFor="content">Quelque chose à dire?</label>
+                <input type="text" name="content" id="content" value={content} 
+                onChange={(e) => setContent(e.target.value)} required />
+                <label htmlFor="image_url">Choisir un fichier</label>
+                <input type="file" id="image_url" name="image_url"
+                onChange={(e) => setImageUrl(e.target.files[0])}/>
                 <input type="submit" value="Envoyer" />
             </form>
         </section>
-    )
+    );
 }
 
-export default CreatePost
+export default CreatePost;

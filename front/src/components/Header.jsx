@@ -9,7 +9,7 @@ function Header() {
     <Fragment>
         <header>
             <section>
-              <Link to="/"><h1>Social Media</h1></Link>
+              <Link to="/"><h1>SocialMedia</h1></Link>
             </section>
             <section>
               <Link to="/signup"><h3>Sign up</h3></Link>

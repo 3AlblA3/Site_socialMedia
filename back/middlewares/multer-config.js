@@ -11,7 +11,6 @@ const MIME_TYPES = {
   'image/gif': 'gif'
 };
 
-
 const storage = multer.diskStorage({
 
 // Definition de l'endroit où seront envoyées nos images
@@ -29,4 +28,4 @@ const storage = multer.diskStorage({
   }
 });
 
-module.exports = multer({storage: storage}).single('image');
+module.exports = multer({storage: storage}).single('image_url');
