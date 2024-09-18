@@ -2,39 +2,47 @@ import React, { useState } from 'react';
  
  // Fonction pour créer un commentaire, on passe le post_id et le content en paramètre
  
-export async function createComment(post_id, commentContent) {
+ export async function createComment(post_id, commentContent, image_url = null) {
+  let token = localStorage.getItem('authToken');
+  if (!token) {
+    console.error('Token not found');
+    alert('Vous devez être connecté pour commenter.');
+    return;
+  }
 
-    let token = localStorage.getItem('authToken');
-    if (!token) {
-      console.error('Token not found');
-      alert('Vous devez être connecté pour commenter.');
-      return;
+  const commentURL = "http://localhost:3000/comments";
+  const comment = new FormData();
+  comment.append('content', commentContent);
+  comment.append('post_id', post_id); // Ensure the post_id is included
+  if (image_url) {
+    comment.append('image_url', image_url);
+  }
+
+  try {
+    const response = await fetch(commentURL, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      body: comment,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const commentURL = "http://localhost:3000/comments";
-    const comment = {post_id, content: commentContent};
+    // Parse the response data
+    const newComment = await response.json();
 
-    try {
-      const response = await fetch(commentURL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(comment),
-      });
+    // Return the new comment instead of reloading the page
+    return newComment;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Erreur lors de la création du commentaire');
+  }
+}
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      window.location.reload();
-
-
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Erreur lors de la création du commentaire');
-    }
-};  
 
 //Fonction supprimer le commentaire
 

@@ -1,0 +1,26 @@
+.createPost{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.formCreatePost{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 60%;
+    align-items: center;
+
+}
+
+.logoImage{
+    height: 1.5rem;
+    width: 1.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem
+}
+
+.submit{
+    width: 4rem
+
+}

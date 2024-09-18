@@ -26,38 +26,39 @@ function CreatePost() {
             const response = await fetch(postURL, {
                 method: 'POST',
                 headers: {
-                  "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`
                 },
                 body: post,
-              });
-
-              if (!response.ok) {
+            });
+    
+            if (!response.ok) {
                 const errorData = await response.text(); 
-                throw new Error(`HTTP error! status: ${response.status}.`);
+                console.error('Error response:', errorData);
+                throw new Error(`HTTP error! status: ${response.status}. Details: ${errorData}`);
             }
                 
-                const responseData = await response.json();
-                console.log('Success:', responseData);
-                alert('post réussi !');
-                window.location.reload();
-
-            } 
+            const responseData = await response.json();
+            console.log('Success:', responseData);
+            alert('post réussi !');
+            window.location.reload();
+        } 
         catch (error) {
             console.error('Error:', error);
             alert(`Erreur: ${error.message}`);
         }
-    };
+    }
 
 return (
-        <section id="createPost">
-            <form onSubmit={FormPost} id="formPost">
-                <label htmlFor="content">Quelque chose à dire?</label>
-                <input type="text" name="content" id="content" value={content} 
+        <section id="createPost" className="createPost">
+            <form onSubmit={FormPost} id="formPost" className="formCreatePost">
+                <input type="text" name="content" id="content" placeholder="Quelque chose à dire?" value={content}  
                 onChange={(e) => setContent(e.target.value)} required />
-                <label htmlFor="image_url">Choisir un fichier</label>
-                <input type="file" id="image_url" name="image_url"
-                onChange={(e) => setImageUrl(e.target.files[0])}/>
-                <input type="submit" value="Envoyer" />
+                <input type="file" id="image_url" name="image_url" accept="image/png,image/gif,image/jpeg,image/jpg"
+                onChange={(e) => setImageUrl(e.target.files[0])}  style={{ display: 'none' }}/>
+                <label htmlFor="image_url" className="uploadIcon">
+                    <img src="/camera.png" alt="Upload Icon" className="logoImage" />
+                </label>
+                <input type="submit" value="Envoyer" className='submit'/>
             </form>
         </section>
     );
