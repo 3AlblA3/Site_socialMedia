@@ -5,8 +5,7 @@ const auth = require('../middlewares/auth');
 const checkCommentLike = require('../middlewares/checkCommentLike');
 
 router.get('/', ctrlCommentLike.getAllCommentLikes);
-router.post('/', auth, ctrlCommentLike.createCommentLike);
+router.post('/', auth, ctrlCommentLike.toggleCommentLike);
 router.get('/:id', ctrlCommentLike.getOneCommentLike);
-router.delete('/:id', auth, checkCommentLike, ctrlCommentLike.deleteCommentLike);
 
 module.exports = router;

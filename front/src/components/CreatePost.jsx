@@ -38,8 +38,6 @@ function CreatePost() {
             }
                 
             const responseData = await response.json();
-            console.log('Success:', responseData);
-            alert('post réussi !');
             window.location.reload();
         } 
         catch (error) {

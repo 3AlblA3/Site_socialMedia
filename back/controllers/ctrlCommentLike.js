@@ -9,15 +9,7 @@ exports.getAllCommentLikes = async (req, res, next) => {
     }
 };
 
-exports.createCommentLike = async (req, res, next) => {
-    try {
-        const newCommentLike = { ...req.body, user_id: req.auth.user_id};
-        const commentLike = await CommentLike.create(newCommentLike);
-        res.status(200).json(commentLike);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
+
 
 
 exports.getOneCommentLike = async (req, res, next) => {
@@ -32,16 +24,36 @@ exports.getOneCommentLike = async (req, res, next) => {
     }
 };
 
-exports.deleteCommentLike = async (req, res, next) => {
+exports.toggleCommentLike = async (req, res, next) => {
     try {
-        const commentLikeId = req.params.id; 
-
-        await CommentLike.destroy({where: { id: commentLikeId }});
-        res.status(200).json({ message: 'CommentLike deleted!' });
-
+      const { comment_id } = req.body;
+      const user_id = req.auth.user_id;
+  
+      const existingLike = await CommentLike.findOne({
+        where: { user_id, comment_id },
+        paranoid: false // This will include soft-deleted records
+      });
+  
+      if (existingLike) {
+        if (existingLike.deletedAt) {
+          // If the like was soft-deleted, restore it
+          await existingLike.restore();
+          res.status(200).json({ message: 'Like restored', liked: true });
+        } else {
+          // If the like exists and is not deleted, soft-delete it
+          await existingLike.destroy();
+          res.status(200).json({ message: 'Like removed', liked: false });
         }
-     catch (error) {
-        res.status(500).json({ error: error.message });
+      } else {
+        // If the like doesn't exist, create it
+        await CommentLike.create({ user_id, post_id });
+        res.status(201).json({ message: 'Like added', liked: true });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-};
+  };
+
+
+
 

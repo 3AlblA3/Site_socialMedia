@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import CreatePost from '../components/CreatePost';
 import { createComment, deleteComment, modifyComment } from '../components/HandleComment';
+import togglePostLike from '../components/HandlePostLike';
+import toggleCommentLike from '../components/HandleCommentLike';
 
 function HomePage() {
+  const [showModifyPosts, setShowModifyPosts] = useState({});
   const [posts, setPosts] = useState([]);
   const [usersMap, setUsersMap] = useState({});
   const [commentsMap, setCommentsMap] = useState({});
   const [postLikesMap, setPostLikesMap] = useState({});
   const [commentLikesMap, setCommentLikesMap] = useState({});
   const [user_id, setUserId] = useState(null);
-  const [modifiedContent, setModifiedContent] = useState('');
+  const [modifiedPostContent, setModifiedPostContent] = useState('');
   const [modifiedCommentContent, setModifiedCommentContent] = useState('');
   const [newComments, setNewComments] = useState({});
+  const [newPostLike, setNewPostLike] = useState({});
+  const [newCommentLike, setNewCommentLike] = useState({});
   const [showComments, setShowComments] = useState({});
+  const [showModifyComments, setShowModifyComments] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -105,7 +111,7 @@ function HomePage() {
 
   async function modifyPost(id) {
     const token = localStorage.getItem('authToken');
-    const post = { content: modifiedContent };
+    const post = { content: modifiedPostContent }; // Use the modifiedPostContent
 
     try {
       const response = await fetch(`http://localhost:3000/posts/${id}`, {
@@ -122,12 +128,21 @@ function HomePage() {
       }
 
       setPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === id ? { ...p, content: modifiedContent } : p))
+        prevPosts.map((p) => (p.id === id ? { ...p, content: modifiedPostContent } : p))
       );
+      // Reset the edit state
+      toggleModifyPost(id);
     } catch (error) {
       console.error('Error:', error);
       alert('Erreur lors de la modification : ' + error.message);
     }
+  }
+
+  function toggleModifyPost(post_id) {
+    setShowModifyPosts((prevState) => ({
+      ...prevState,
+      [post_id]: !prevState[post_id], // Toggle the visibility of the modify input for the post
+    }));
   }
 
   function toggleComments(post_id) {
@@ -137,53 +152,70 @@ function HomePage() {
     }));
   }
 
-  async function handleAddComment(post_id) {
+  async function handlePostLike(post_id) {
+    try {
+      const result = await togglePostLike(post_id);
+      if (result) {
+        setPostLikesMap((prevPostLikesMap) => ({
+          ...prevPostLikesMap,
+          [post_id]: result.liked 
+            ? (prevPostLikesMap[post_id] || 0) + 1
+            : Math.max((prevPostLikesMap[post_id] || 1) - 1, 0),
+        }));
+        setNewPostLike((prev) => ({
+          ...prev,
+          [post_id]: result.liked,
+        }));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erreur lors de la gestion du like');
+    }
+  }
 
-    //On récupère le notre champ de commentaire en fonciton du post_id sur lequel il est situé
 
-    const commentContent = newComments[post_id];
   
+  async function handleAddComment(post_id) {
+    const commentContent = newComments[post_id];
     if (!commentContent || commentContent.trim() === '') {
       alert('Le commentaire ne peut pas être vide.');
       return;
     }
-  
+
     try {
-      // Appelle de la fonction de createComment
       const newComment = await createComment(post_id, commentContent);
-  
-      // Condition qui s'assure que le commentaire est bien lié au bon post_id
 
       if (newComment && newComment.post_id === post_id) {
         setCommentsMap((prevCommentsMap) => ({
           ...prevCommentsMap,
-          [post_id]: [...(prevCommentsMap[post_id] || []), newComment] // Add the new comment to the post's comment array
+          [post_id]: [...(prevCommentsMap[post_id] || []), newComment],
         }));
-  
-        // Clear the input field for this post
         setNewComments((prev) => ({
           ...prev,
-          [post_id]: ''
+          [post_id]: '',
         }));
-  
-        // Ensure comments are visible for this post
         setShowComments((prev) => ({
           ...prev,
-          [post_id]: true
+          [post_id]: true,
         }));
-
       }
     } catch (error) {
       console.error('Error adding comment:', error);
       alert("Une erreur est survenue lors de l'ajout du commentaire.");
     }
+  }
 
-    window.location.reload();
-
+  function toggleModifyComments(comment_id) {
+    setShowModifyComments((prevState) => ({
+      ...prevState,
+      [comment_id]: !prevState[comment_id], // Toggle the visibility of the modify input for the comment
+    }));
   }
 
   function handleModifyComment(comment_id, modifiedCommentContent) {
     modifyComment(comment_id, modifiedCommentContent);
+    // Reset the edit state
+    toggleModifyComments(comment_id);
   }
 
   function handleDeleteComment(comment_id) {
@@ -216,6 +248,7 @@ function HomePage() {
                             src="/stylo.png"
                             alt="modifier post"
                             className="article__header__menu__deroulant__icon"
+                            onClick={() => toggleModifyPost(post.id)}
                           />
                         </li>
                         <li>
@@ -230,55 +263,108 @@ function HomePage() {
                     </div>
                   )}
                 </div>
-                {post.image_url && (
-                  <img src={post.image_url} alt="Post image" className="post__image" />
-                )}
+
+                {post.image_url && <img src={post.image_url} alt="Post image" className="post__image" />}
                 <p>{post.content}</p>
+
+                {/* Post Likes */}
                 <div className="likes">
-                  <img src="/like.png" alt="like" className="logos" />
-                  <p>{postLikesCount}</p>
+                  <img src={newPostLike[post.id] ? "/like-filled.png" : "/like.png"} alt="like" 
+                  className="logos" onClick={() => handlePostLike(post.id)} />
+                 <p>{postLikesMap[post.id] || 0}</p>
                 </div>
 
+                {/* Modify Post Input - Only visible when toggled */}
+                {showModifyPosts[post.id] && (
+                  <div className="article__comments__modify__post">
+                    <input
+                      type="text"
+                      name="content"
+                      id="content"
+                      value={modifiedPostContent}
+                      onChange={(e) => setModifiedPostContent(e.target.value)}
+                    />
+                    <button onClick={() => modifyPost(post.id)}>Modifier le post</button>
+                  </div>
+                )}
+
+                {/* Comments Section */}
                 <div className="article__comments">
-                  <p className="article__comments__menu" onClick={() => toggleComments(post.id)}>Voir les commentaires</p>
+                  <p className="article__comments__menu" onClick={() => toggleComments(post.id)}>
+                    Voir les commentaires
+                  </p>
+
                   <div className={`article__comments__menu__deroulants ${showComments[post.id] ? 'visible' : ''}`}>
                     <ul>
-                      {postComments.map((comment, index) => {
+                      {postComments.map((comment) => {
                         const commentLikesCount = commentLikesMap[comment.id] || 0;
                         const isAuthor = comment.user_id === user_id;
+                        const commentAuthor = usersMap[comment.user_id];
+
                         return (
-                          <li key={index}>
-                            {comment.content}
+                          <li key={comment.id} className="article__comments_window">
+                            <div className="comment__header">
+                              <h4>{commentAuthor}</h4>
+                              {isAuthor && (
+                                <div className="article__header__menu">
+                                  <img src="/dots.png" alt="menu" className="logos" />
+                                  <ul className="article__header__menu__deroulant">
+                                    <li>
+                                      <img
+                                        src="/stylo.png"
+                                        alt="modifier commentaire"
+                                        className="article__header__menu__deroulant__icon"
+                                        onClick={() => toggleModifyComments(comment.id)}
+                                      />
+                                    </li>
+                                    <li>
+                                      <img
+                                        src="/trash.png"
+                                        alt="supprimer commentaire"
+                                        className="article__header__menu__deroulant__icon"
+                                        onClick={() => handleDeleteComment(comment.id)}
+                                      />
+                                    </li>
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+
+                            <p>{comment.content}</p>
+
+                            {/* Comment Likes */}
                             <div className="likes">
-                              <img src="/like.png" alt="like" className="logos" />
+                              <img src="/like.png" alt="like" className="logos" onClick={() => handleAddCommentLike(comment.id)} />
                               <p>{commentLikesCount}</p>
                             </div>
-                            {isAuthor && (
-                              <>
-                                <input type="text" name="modifiedCommentContent" id="modifiedCommentContent"
-                                  value={modifiedCommentContent} onChange={(e) => setModifiedCommentContent(e.target.value)}/>
+
+                            {/* Modify Comment Input - Only visible when toggled */}
+                            {showModifyComments[comment.id] && (
+                              <div>
+                                <input
+                                  type="text"
+                                  value={modifiedCommentContent}
+                                  onChange={(e) => setModifiedCommentContent(e.target.value)}
+                                />
                                 <button onClick={() => handleModifyComment(comment.id, modifiedCommentContent)}>
-                                  Modifier
+                                  Modifier le commentaire
                                 </button>
-                                <button onClick={() => handleDeleteComment(comment.id)}>Supprimer</button>
-                              </>
+                              </div>
                             )}
                           </li>
                         );
                       })}
                     </ul>
-                    <input type="text" placeholder="Ajouter un commentaire" value={newComments[post.id] || ''} 
-                    onChange={(e) => setNewComments({ ...newComments, [post.id]: e.target.value })}/>
+
+                    <input
+                      type="text"
+                      placeholder="Ajouter un commentaire"
+                      value={newComments[post.id] || ''}
+                      onChange={(e) => setNewComments({ ...newComments, [post.id]: e.target.value })}
+                    />
                     <button onClick={() => handleAddComment(post.id)}>Envoyer</button>
                   </div>
                 </div>
-                {isPostAuthor && (
-                  <div>
-                    <input type="text" name="content" id="content" value={modifiedContent}
-                      onChange={(e) => setModifiedContent(e.target.value)}/>
-                    <button onClick={() => modifyPost(post.id)}>Modifier le post</button>
-                  </div>
-                )}
               </article>
             );
           })}

@@ -4,9 +4,8 @@ const ctrlPostLike = require('../controllers/ctrlPostLike');
 const auth = require('../middlewares/auth');
 const checkPostLike = require('../middlewares/checkPostLike');
 ;
-router.get('/:id', ctrlPostLike.getOnePostLike);
-router.delete('/:id', auth, checkPostLike, ctrlPostLike.deletePostLike);
-
+router.get('/:id',  ctrlPostLike.getOnePostLike);
 router.get('/', ctrlPostLike.getAllPostLikes);
-router.post('/', auth, ctrlPostLike.createPostLike)
+router.post('/toggle', auth, ctrlPostLike.togglePostLike);
+
 module.exports = router;

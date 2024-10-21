@@ -1,4 +1,4 @@
-async function toggleCommentLike(post_id) {
+async function togglePostLike(post_id) {
   const token = localStorage.getItem('authToken');
   if (!token) {
     console.error('Token not found');
@@ -6,10 +6,10 @@ async function toggleCommentLike(post_id) {
     return null;
   }
 
-  const commentLikesURL = "http://localhost:3000/commentLikes/toggle";
+  const postLikesURL = "http://localhost:3000/postLikes/toggle";
 
   try {
-    const response = await fetch(commentLikesURL, {
+    const response = await fetch(postLikesURL, {
       method: 'POST',
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -29,4 +29,4 @@ async function toggleCommentLike(post_id) {
   }
 }
 
-export default toggleCommentLike
+export default togglePostLike

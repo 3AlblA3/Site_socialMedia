@@ -9,17 +9,6 @@ exports.getAllPostLikes = async (req, res, next) => {
     }
 };
 
-exports.createPostLike = async (req, res, next) => {
-    try {
-        const newPostLike = { ...req.body, user_id: req.auth.user_id};
-        const postLike = await PostLike.create(newPostLike);
-        res.status(200).json(postLike);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-
 exports.getOnePostLike = async (req, res, next) => {
     try{ const postLike = await PostLike.findByPk(req.params.id); 
         if (postLike) {
@@ -32,16 +21,34 @@ exports.getOnePostLike = async (req, res, next) => {
     }
 };
 
-exports.deletePostLike = async (req, res, next) => {
+exports.togglePostLike = async (req, res, next) => {
     try {
-        const postLikeId = req.params.id; 
-        await PostLike.destroy({where: { id: postLikeId }});
-        res.status(200).json({ message: 'PostLike deleted!' });
-
+      const { post_id } = req.body;
+      const user_id = req.auth.user_id;
+  
+      const existingLike = await PostLike.findOne({
+        where: { user_id, post_id },
+        paranoid: false // This will include soft-deleted records
+      });
+  
+      if (existingLike) {
+        if (existingLike.deletedAt) {
+          // If the like was soft-deleted, restore it
+          await existingLike.restore();
+          res.status(200).json({ message: 'Like restored', liked: true });
+        } else {
+          // If the like exists and is not deleted, soft-delete it
+          await existingLike.destroy();
+          res.status(200).json({ message: 'Like removed', liked: false });
         }
-     catch (error) {
-        res.status(500).json({ error: error.message });
+      } else {
+        // If the like doesn't exist, create it
+        await PostLike.create({ user_id, post_id });
+        res.status(201).json({ message: 'Like added', liked: true });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-};
+  };
 
 

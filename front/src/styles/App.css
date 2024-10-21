@@ -31,11 +31,13 @@ article{
   width: 60%
 }
 
-.article__header{ 
+.article__header, .comment__header{ 
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   padding-bottom: 1rem;
+  margin: 0
 }
 
 h3{
@@ -74,6 +76,14 @@ h3{
   align-items: center;
 }
 
+.article__comments_window{
+  background-color:bisque;
+  border-radius: 1rem;
+  padding: 0.5rem;
+  margin-bottom: 1rem
+}
+
+
 .article__comments__menu__deroulants {
   display: none;
 }
@@ -86,6 +96,10 @@ h3{
 /* Affiche le menu quand il est en hover ou visible */
 .article__comments__menu__deroulants.visible {
   display: block;
+}
+
+ul {
+  list-style: none;
 }
 
 form{

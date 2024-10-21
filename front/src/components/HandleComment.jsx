@@ -31,12 +31,8 @@ import React, { useState } from 'react';
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Parse the response data
-    const newComment = await response.json();
+    window.location.reload();
 
-    // Return the new comment instead of reloading the page
-    return newComment;
-    
   } catch (error) {
     console.error('Error:', error);
     alert('Erreur lors de la création du commentaire');
