@@ -173,7 +173,26 @@ function HomePage() {
     }
   }
 
-
+  async function handleCommentLike(comment_id) {
+    try {
+      const result = await toggleCommentLike(comment_id);
+      if (result) {
+        setCommentLikesMap((prevCommentLikesMap) => ({
+          ...prevCommentLikesMap,
+          [comment_id]: result.liked 
+            ? (prevCommentLikesMap[comment_id] || 0) + 1
+            : Math.max((prevCommentLikesMap[comment_id] || 1) - 1, 0),
+        }));
+        setNewCommentLike((prev) => ({
+          ...prev,
+          [comment_id]: result.liked,
+        }));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erreur lors de la gestion du like');
+    }
+  }
   
   async function handleAddComment(post_id) {
     const commentContent = newComments[post_id];
@@ -269,7 +288,7 @@ function HomePage() {
 
                 {/* Post Likes */}
                 <div className="likes">
-                  <img src={newPostLike[post.id] ? "/like-filled.png" : "/like.png"} alt="like" 
+                  <img src={newPostLike[post.id] ? "/liked.png" : "/like.png"} alt="like" 
                   className="logos" onClick={() => handlePostLike(post.id)} />
                  <p>{postLikesMap[post.id] || 0}</p>
                 </div>
@@ -334,8 +353,9 @@ function HomePage() {
 
                             {/* Comment Likes */}
                             <div className="likes">
-                              <img src="/like.png" alt="like" className="logos" onClick={() => handleAddCommentLike(comment.id)} />
-                              <p>{commentLikesCount}</p>
+                              <img src={newCommentLike[comment.id] ? "/liked.png" : "/like.png"} alt="like" 
+                              className="logos" onClick={() => handleCommentLike(comment.id)} />
+                              <p>{commentLikesMap[comment.id] || 0}</p>
                             </div>
 
                             {/* Modify Comment Input - Only visible when toggled */}

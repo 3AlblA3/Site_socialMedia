@@ -6,7 +6,6 @@ function CreatePost() {
     let token = localStorage.getItem('authToken');
     if (!token) {
         console.error('Token not found');
-        alert('Vous devez être connecté pour publier un post.');
         return;
       }
     const [content, setContent] = useState('')

@@ -1,4 +1,4 @@
-async function toggleCommentLike(post_id) {
+async function toggleCommentLike(comment_id) {
   const token = localStorage.getItem('authToken');
   if (!token) {
     console.error('Token not found');
@@ -15,7 +15,7 @@ async function toggleCommentLike(post_id) {
         "Authorization": `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ post_id }),
+      body: JSON.stringify({ comment_id }),
     });
 
     if (!response.ok) {
@@ -25,7 +25,7 @@ async function toggleCommentLike(post_id) {
     return await response.json();
   } catch (error) {
     console.error('Error:', error);
-    throw error;
+    alert('Erreur lors de la gestion du like: ' + result.error);
   }
 }
 

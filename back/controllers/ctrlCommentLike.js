@@ -46,7 +46,7 @@ exports.toggleCommentLike = async (req, res, next) => {
         }
       } else {
         // If the like doesn't exist, create it
-        await CommentLike.create({ user_id, post_id });
+        await CommentLike.create({ user_id, comment_id });
         res.status(201).json({ message: 'Like added', liked: true });
       }
     } catch (error) {
