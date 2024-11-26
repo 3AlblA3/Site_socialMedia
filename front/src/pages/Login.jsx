@@ -17,7 +17,7 @@ function Login() {
 
   //Création de notre fonction onSubmit
 
-   async function loginSubmit(event) {
+       async function loginSubmit(event) {
     event.preventDefault();
 
     const user = {
@@ -49,6 +49,7 @@ function Login() {
         console.log('Success:', responseData);
         alert('Connexion réussie !');
         localStorage.setItem('authToken', responseData.token);
+        window.dispatchEvent(new Event('loginStateChange'));
         navigate('/'); 
       }
     } catch (error) {
@@ -64,7 +65,7 @@ function Login() {
 
       {/* Formulaire */}
 
-      <form onSubmit={loginSubmit} id="form">
+      <form onSubmit={loginSubmit} id="form" className="signupForm">
         <label htmlFor="email">Email :</label>
         <input type="email" name="email" id="email" value={email}
               onChange={(e) => setEmail(e.target.value)} required/>

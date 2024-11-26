@@ -48,7 +48,7 @@ function CreatePost() {
 return (
         <section id="createPost" className="createPost">
             <form onSubmit={FormPost} id="formPost" className="formCreatePost">
-                <input type="text" name="content" id="content" placeholder="Quelque chose à dire?" value={content}  
+                <input type="text" name="content" id="content" placeholder="Quelque chose à dire?" value={content} className="inputContent" 
                 onChange={(e) => setContent(e.target.value)} required />
                 <input type="file" id="image_url" name="image_url" accept="image/png,image/gif,image/jpeg,image/jpg"
                 onChange={(e) => setImageUrl(e.target.files[0])}  style={{ display: 'none' }}/>

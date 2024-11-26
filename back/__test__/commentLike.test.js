@@ -96,8 +96,7 @@ describe('GET /commentLikes/:id', () => {
     });
 });
 
-describe('POST /commentLikes', () => {
-
+describe('POST /commentLikes/toggle', () => {
     beforeEach(() => {
         jwt.verify = jest.fn().mockImplementation((token, secret) => {
             if (token === 'validtoken') {
@@ -112,93 +111,33 @@ describe('POST /commentLikes', () => {
         jest.clearAllMocks();  
     });
 
-    it('should create a new commentLike and return 200', async () => {
-        const newCommentLike ={   
-            id: 1, 
-            user_id: 1,
-            comment_id: 1
-        } 
+    it('should toggle a commentLike and return 200 or 201', async () => {
+        const commentLikeData = { comment_id: 1 };
 
-        CommentLike.create.mockResolvedValue(newCommentLike)
-
-        const response = await request(app)
-            .post('/commentLikes')
-            .set('Authorization', 'Bearer validtoken')
-            .send(newCommentLike)
-
-        expect(response.status).toBe(200);
-    })
-
-    it('should return a 401 status if there is no token', async () => {
-        const newCommentLike ={   
-            id: 1, 
-            user_id: 1,
-            comment_id: 1
-        } 
-
-
-        CommentLike.create.mockResolvedValue(new Error ('Failed to create commentLike'))
+        // Mock the CommentLike.findOne to simulate no existing like
+        CommentLike.findOne.mockResolvedValue(null);
+        
+        // Mock the CommentLike.create for a new like
+        CommentLike.create.mockResolvedValue({ id: 1, user_id: 1, ...commentLikeData });
 
         const response = await request(app)
-          .post('/commentLikes')
-          .send(newCommentLike);
+            .post('/commentLikes/toggle')
+            .set('Cookie', ['token=validtoken'])
+            .send(commentLikeData);
 
-          expect(response.status).toBe(401);
-          expect(response.body.message).toBe('Authorization header missing');
-    
-    })
-})
-
-describe ('DELETE /commentLikes/:id', () => {
-    it('should delete a commentLike and return a 200 status', async () => {
-        const commentLikeToDelete ={   
-            id: 1, 
-            user_id: 1,
-            comment_id: 1
-        } 
-
-        CommentLike.findByPk.mockResolvedValue(commentLikeToDelete);
-        CommentLike.destroy.mockResolvedValue(1);
-
-        const response = await request(app)
-            .delete('/commentLikes/1')
-            .set('Authorization', 'Bearer validtoken');
-
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe("CommentLike deleted!")
+        expect(response.status).toBe(201);
+        expect(response.body.message).toBe('Like added');
+        expect(response.body.liked).toBe(true);
     });
 
-    it('should return a 401 status if the token is missing', async () => {
-        const commentLikeToDelete = {
-            id: 1, 
-            user_id: 1,
-            comment_id: 1
-        }
+    it('should return a 401 status if there is no token', async () => {
+        const commentLikeData = { comment_id: 1 };
 
-        CommentLike.findByPk.mockResolvedValue(commentLikeToDelete);
+        const response = await request(app)
+          .post('/commentLikes/toggle')
+          .send(commentLikeData);
 
-        const response = await request (app)
-            .delete('/commentLikes/1')
-
-        expect(response.status).toBe(401)
-        expect(response.body.message).toBe("Authorization header missing")
-    })
-    
-    it('should return a 403 status if you try to delete another commentLike', async () => {
-        const commentLikeToDelete = {
-            id: 1, 
-            user_id: 2,
-            comment_id: 1
-        }
-
-        CommentLike.findByPk.mockResolvedValue(commentLikeToDelete);
-
-        const response = await request (app)
-            .delete('/commentLikes/1')
-            .set('Authorization', `Bearer validtoken`)
-
-        expect(response.status).toBe(403)
-        expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")
-    })
-})
-
+        expect(response.status).toBe(401);
+        expect(response.body.message).toBe('Authentication token is missing');
+    });
+});

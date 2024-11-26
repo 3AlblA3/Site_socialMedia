@@ -31,21 +31,20 @@ exports.toggleCommentLike = async (req, res, next) => {
   
       const existingLike = await CommentLike.findOne({
         where: { user_id, comment_id },
-        paranoid: false // This will include soft-deleted records
       });
   
       if (existingLike) {
         if (existingLike.deletedAt) {
-          // If the like was soft-deleted, restore it
+
           await existingLike.restore();
           res.status(200).json({ message: 'Like restored', liked: true });
         } else {
-          // If the like exists and is not deleted, soft-delete it
+
           await existingLike.destroy();
           res.status(200).json({ message: 'Like removed', liked: false });
         }
       } else {
-        // If the like doesn't exist, create it
+
         await CommentLike.create({ user_id, comment_id });
         res.status(201).json({ message: 'Like added', liked: true });
       }

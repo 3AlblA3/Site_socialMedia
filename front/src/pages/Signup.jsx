@@ -103,7 +103,7 @@ function Signup() {
 
       {/* Formulaire  */}
 
-      <form onSubmit={signupSubmit} id="form">
+      <form onSubmit={signupSubmit} id="form" className="signupForm">
         <label htmlFor="first_name">Prénom :</label>
         <input type="text" name="first_name" id="first_name" value={first_name}
               onChange={(e) => setFirstName(e.target.value)} required/>

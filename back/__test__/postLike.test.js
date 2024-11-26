@@ -64,7 +64,6 @@ describe('GET /postLikes/:id', () => {
             post_id: 1
         } 
 
-
         PostLike.findByPk.mockResolvedValue(postLike);
 
         const response = await request(app)
@@ -96,8 +95,7 @@ describe('GET /postLikes/:id', () => {
     });
 });
 
-describe('POST /postLikes', () => {
-
+describe('POST /postLikes/toggle', () => {
     beforeEach(() => {
         jwt.verify = jest.fn().mockImplementation((token, secret) => {
             if (token === 'validtoken') {
@@ -112,93 +110,31 @@ describe('POST /postLikes', () => {
         jest.clearAllMocks();  
     });
 
-    it('should create a new postLike and return 200', async () => {
-        const newPostLike = {
-            id: 1, 
-            user_id: 1,
-            post_id: 1
-        }
+    it('should toggle a postLike and return 200 or 201', async () => {
+        const postLikeData = { post: 1 };
 
-        PostLike.create.mockResolvedValue(newPostLike)
+        PostLike.findOne.mockResolvedValue(null);
+        
+        PostLike.create.mockResolvedValue({ id: 1, user_id: 1, ...postLikeData });
 
         const response = await request(app)
-            .post('/postLikes')
-            .set('Authorization', 'Bearer validtoken')
-            .send(newPostLike)
+            .post('/postLikes/toggle')
+            .set('Cookie', ['token=validtoken'])
+            .send(postLikeData);
 
-        expect(response.status).toBe(200);
-    })
-
-    it('should return a 401 status if there is no token', async () => {
-        const newPostLike = {
-            id: 1, 
-            user_id: 1,
-            post_id: 1
-        }
-
-
-        PostLike.create.mockResolvedValue(new Error ('Failed to create postLike'))
-
-        const response = await request(app)
-          .post('/postLikes')
-          .send(newPostLike);
-
-          expect(response.status).toBe(401);
-          expect(response.body.message).toBe('Authorization header missing');
-    
-    })
-})
-
-describe ('DELETE /postLikes/:id', () => {
-    it('should delete a postLike and return a 200 status', async () => {
-        const postLiketoDelete = {
-            id: 1,
-            user_id: 1,
-            post_id: 1
-        }
-
-        PostLike.findByPk.mockResolvedValue(postLiketoDelete);
-        PostLike.destroy.mockResolvedValue(1);
-
-        const response = await request(app)
-            .delete('/postLikes/1')
-            .set('Authorization', 'Bearer validtoken');
-
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe("PostLike deleted!")
+        expect(response.status).toBe(201);
+        expect(response.body.message).toBe('Like added');
+        expect(response.body.liked).toBe(true);
     });
 
-    it('should return a 401 status if the token is missing', async () => {
-        const postLikeToDelete = {
-            id: 1,
-            user_id: 1,
-            post_id: 1
-        }
+    it('should return a 401 status if there is no token', async () => {
+        const postLikeData = { post_id: 1 };
 
-        PostLike.findByPk.mockResolvedValue(postLikeToDelete);
+        const response = await request(app)
+          .post('/postLikes/toggle')
+          .send(postLikeData);
 
-        const response = await request (app)
-            .delete('/postLikes/1')
-
-        expect(response.status).toBe(401)
-        expect(response.body.message).toBe("Authorization header missing")
-    })
-    
-    it('should return a 403 status if you try to delete another postLike', async () => {
-        const postLikeToDelete = {
-            id: 1,
-            user_id: 2,
-            post_id: 1
-        }
-
-        PostLike.findByPk.mockResolvedValue(postLikeToDelete);
-
-        const response = await request (app)
-            .delete('/postLikes/1')
-            .set('Authorization', `Bearer validtoken`)
-
-        expect(response.status).toBe(403)
-        expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")
-    })
-})
-
+        expect(response.status).toBe(401);
+        expect(response.body.message).toBe('Authentication token is missing');
+    });
+});

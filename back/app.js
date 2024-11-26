@@ -1,8 +1,12 @@
 const express = require ('express')
 const path = require('path'); 
 const app = express()
-app.use(express.json());
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
 
+app.use(cookieParser());
+app.use(helmet());
+app.use(express.json());
 // Import des routes
 
 const routeRole = require('./routes/routeRole');
@@ -34,5 +38,5 @@ app.use('/comments', routeComment);
 app.use('/postLikes', routePostLike);
 app.use('/commentLikes', routeCommentLike);
 
-
 module.exports = app
+

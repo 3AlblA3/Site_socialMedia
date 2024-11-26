@@ -1,0 +1,14 @@
+{
+  "name": "site_socialmedia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm run dev:front\" \"npm run dev:back\"",
+    "dev:front": "cd front && npm run dev",
+    "dev:back": "cd back && nodemon index"
+  },
+  "author": "",
+  "license": "ISC"
+}

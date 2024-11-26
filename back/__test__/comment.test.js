@@ -139,7 +139,7 @@ describe('POST /comments', () => {
             .post('/comments')
             .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
             .field('content', newComment.content)
-            .set('Authorization', 'Bearer validtoken')
+            .set('Cookie', ['token=validtoken']) // Set valid token
             
 
         expect(response.status).toBe(201);
@@ -159,7 +159,7 @@ describe('POST /comments', () => {
         const response = await request(app)
             .post('/comments')
             .send(newComment)
-            .set('Authorization', 'Bearer validtoken')
+            .set('Cookie', ['token=validtoken']) // Set valid token
             
 
         expect(response.status).toBe(201);
@@ -178,7 +178,7 @@ describe('POST /comments', () => {
           .send(newComment);
 
           expect(response.status).toBe(401);
-          expect(response.body.message).toBe('Authorization header missing');
+          expect(response.body.message).toBe('Authentication token is missing');
     
     })
 })
@@ -215,7 +215,7 @@ describe ('PUT /comments/:id', () => {
 
         const response = await request (app)
             .put('/comments/4')
-            .set('Authorization', `Bearer validtoken`)
+            .set('Cookie', ['token=validtoken']) // Set valid token
             .send(updatedComment);
 
         expect(response.status).toBe(200)
@@ -243,7 +243,7 @@ describe ('PUT /comments/:id', () => {
         const response = await request(app)
           .put('/comments/4')
           .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
-          .set('Authorization', 'Bearer validtoken')
+          .set('Cookie', ['token=validtoken']) // Set valid token
           .field('content', updatedComment.content);
   
         expect(response.status).toBe(200);
@@ -271,7 +271,7 @@ describe ('PUT /comments/:id', () => {
             .send(updatedComment);
 
         expect(response.status).toBe(401)
-        expect(response.body.message).toBe("Authorization header missing")
+        expect(response.body.message).toBe("Authentication token is missing")
     }),
 
     it('should return a 403 status if you try to modify another comment', async () => {
@@ -292,7 +292,7 @@ describe ('PUT /comments/:id', () => {
 
         const response = await request (app)
             .put('/comments/4')
-            .set('Authorization', `Bearer validtoken`)
+            .set('Cookie', ['token=validtoken']) // Set valid token
             .send(updatedComment);
 
         expect(response.status).toBe(403)
@@ -316,7 +316,7 @@ describe ('DELETE /comments/:id', () => {
 
         const response = await request(app)
             .delete('/comments/5')
-            .set('Authorization', 'Bearer validtoken');
+            .set('Cookie', ['token=validtoken']) // Set valid token
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Comment deleted!")
@@ -336,7 +336,7 @@ describe ('DELETE /comments/:id', () => {
 
         const response = await request(app)
             .delete('/comments/5')
-            .set('Authorization', 'Bearer validtoken');
+            .set('Cookie', ['token=validtoken']) // Set valid token
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Comment deleted!")
@@ -356,7 +356,7 @@ describe ('DELETE /comments/:id', () => {
             .delete('/comments/5')
 
         expect(response.status).toBe(401)
-        expect(response.body.message).toBe("Authorization header missing")
+        expect(response.body.message).toBe("Authentication token is missing")
     })
     
     it('should return a 403 status if you try to delete another post', async () => {
@@ -371,7 +371,7 @@ describe ('DELETE /comments/:id', () => {
 
         const response = await request (app)
             .delete('/comments/5s')
-            .set('Authorization', `Bearer validtoken`)
+            .set('Cookie', ['token=validtoken']) // Set valid token
 
         expect(response.status).toBe(403)
         expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")

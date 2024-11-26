@@ -12,6 +12,7 @@ function HomePage() {
   const [postLikesMap, setPostLikesMap] = useState({});
   const [commentLikesMap, setCommentLikesMap] = useState({});
   const [user_id, setUserId] = useState(null);
+  const [role_id, setRoleId] = useState(null);
   const [modifiedPostContent, setModifiedPostContent] = useState('');
   const [modifiedCommentContent, setModifiedCommentContent] = useState('');
   const [newComments, setNewComments] = useState({});
@@ -19,12 +20,14 @@ function HomePage() {
   const [newCommentLike, setNewCommentLike] = useState({});
   const [showComments, setShowComments] = useState({});
   const [showModifyComments, setShowModifyComments] = useState({});
+  
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
       const decodedToken = JSON.parse(atob(token.split('.')[1]));
       setUserId(decodedToken.user_id);
+      setRoleId(decodedToken.role_id);
     }
 
     async function getPosts() {
@@ -102,7 +105,7 @@ function HomePage() {
       }
 
       alert('Post supprimé avec succès!');
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== id));
+      setPosts((existingPosts) => existingPosts.filter((post) => post.id !== id));
     } catch (error) {
       console.error('Error:', error);
       alert('Erreur lors de la suppression : ' + error.message);
@@ -127,8 +130,8 @@ function HomePage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      setPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === id ? { ...p, content: modifiedPostContent } : p))
+      setPosts((existingPosts) =>
+        existingPosts.map((p) => (p.id === id ? { ...p, content: modifiedPostContent } : p))
       );
       // Reset the edit state
       toggleModifyPost(id);
@@ -139,16 +142,16 @@ function HomePage() {
   }
 
   function toggleModifyPost(post_id) {
-    setShowModifyPosts((prevState) => ({
-      ...prevState,
-      [post_id]: !prevState[post_id], // Toggle the visibility of the modify input for the post
+    setShowModifyPosts((existingState) => ({
+      ...existingState,
+      [post_id]: !existingState[post_id], // Toggle the visibility of the modify input for the post
     }));
   }
 
   function toggleComments(post_id) {
-    setShowComments((prevState) => ({
-      ...prevState,
-      [post_id]: !prevState[post_id],
+    setShowComments((existingState) => ({
+      ...existingState,
+      [post_id]: !existingState[post_id],
     }));
   }
 
@@ -156,14 +159,14 @@ function HomePage() {
     try {
       const result = await togglePostLike(post_id);
       if (result) {
-        setPostLikesMap((prevPostLikesMap) => ({
-          ...prevPostLikesMap,
+        setPostLikesMap((existingPostLikesMap) => ({
+          ...existingPostLikesMap,
           [post_id]: result.liked 
-            ? (prevPostLikesMap[post_id] || 0) + 1
-            : Math.max((prevPostLikesMap[post_id] || 1) - 1, 0),
+            ? (existingPostLikesMap[post_id] || 0) + 1
+            : Math.max((existingPostLikesMap[post_id] || 1) - 1, 0),
         }));
-        setNewPostLike((prev) => ({
-          ...prev,
+        setNewPostLike((existing) => ({
+          ...existing,
           [post_id]: result.liked,
         }));
       }
@@ -177,14 +180,14 @@ function HomePage() {
     try {
       const result = await toggleCommentLike(comment_id);
       if (result) {
-        setCommentLikesMap((prevCommentLikesMap) => ({
-          ...prevCommentLikesMap,
+        setCommentLikesMap((existingCommentLikesMap) => ({
+          ...existingCommentLikesMap,
           [comment_id]: result.liked 
-            ? (prevCommentLikesMap[comment_id] || 0) + 1
-            : Math.max((prevCommentLikesMap[comment_id] || 1) - 1, 0),
+            ? (existingCommentLikesMap[comment_id] || 0) + 1
+            : Math.max((existingCommentLikesMap[comment_id] || 1) - 1, 0),
         }));
-        setNewCommentLike((prev) => ({
-          ...prev,
+        setNewCommentLike((existing) => ({
+          ...existing,
           [comment_id]: result.liked,
         }));
       }
@@ -205,16 +208,16 @@ function HomePage() {
       const newComment = await createComment(post_id, commentContent);
 
       if (newComment && newComment.post_id === post_id) {
-        setCommentsMap((prevCommentsMap) => ({
-          ...prevCommentsMap,
-          [post_id]: [...(prevCommentsMap[post_id] || []), newComment],
+        setCommentsMap((existingCommentsMap) => ({
+          ...existingCommentsMap,
+          [post_id]: [...(existingCommentsMap[post_id] || []), newComment],
         }));
-        setNewComments((prev) => ({
-          ...prev,
+        setNewComments((existing) => ({
+          ...existing,
           [post_id]: '',
         }));
-        setShowComments((prev) => ({
-          ...prev,
+        setShowComments((existing) => ({
+          ...existing,
           [post_id]: true,
         }));
       }
@@ -225,9 +228,9 @@ function HomePage() {
   }
 
   function toggleModifyComments(comment_id) {
-    setShowModifyComments((prevState) => ({
-      ...prevState,
-      [comment_id]: !prevState[comment_id], // Toggle the visibility of the modify input for the comment
+    setShowModifyComments((existingState) => ({
+      ...existingState,
+      [comment_id]: !existingState[comment_id], // Affiche/cache notre bouton modify
     }));
   }
 
@@ -240,46 +243,56 @@ function HomePage() {
   function handleDeleteComment(comment_id) {
     deleteComment(comment_id);
   }
+  const [showMenu, setShowMenu] = useState({});
+
+  function toggleMenu(id) {
+    setShowMenu(prevState => ({
+      ...prevState,
+      [id]: !prevState[id]
+    }));
+  }
+
+  const [showCommentMenu, setShowCommentMenu] = useState({});
+
+  function toggleCommentMenu(id) {
+    setShowCommentMenu(prevState => ({
+      ...prevState,
+      [id]: !prevState[id]
+    }));
+}
 
   return (
     <>
       <CreatePost />
       <section className="posts" id="posts">
-        {posts
-          .slice()
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .map((post) => {
+        {posts.map((post) => {
             const author = usersMap[post.user_id];
             const postComments = commentsMap[post.id] || [];
             const postLikesCount = postLikesMap[post.id] || 0;
-            const isPostAuthor = post.user_id === user_id;
+            const isAllowed = post.user_id === user_id || role_id === 3;
 
             return (
               <article key={post.id}>
                 <div className="article__header">
                   <h3>{author}</h3>
-                  {isPostAuthor && (
-                    <div className="article__header__menu">
-                      <img src="/dots.png" alt="menu" className="logos" />
-                      <ul className="article__header__menu__deroulant">
-                        <li>
-                          <img
-                            src="/stylo.png"
-                            alt="modifier post"
-                            className="article__header__menu__deroulant__icon"
-                            onClick={() => toggleModifyPost(post.id)}
-                          />
-                        </li>
-                        <li>
-                          <img
-                            src="/trash.png"
-                            alt="supprimer post"
-                            className="article__header__menu__deroulant__icon"
-                            onClick={() => deletePost(post.id)}
-                          />
-                        </li>
-                      </ul>
-                    </div>
+                  {isAllowed && (
+                  <div className="article__header__menu">
+                    <img 
+                      src="/dots.png" alt="menu" className="logos" 
+                      onClick={() => toggleMenu(post.id)}/>
+                    <ul className={`article__header__menu__deroulant ${showMenu[post.id] ? 'visible' : ''}`}>
+                      <li>
+                        <img
+                          src="/stylo.png" alt="modifier post" className="article__header__menu__deroulant__icon"
+                        onClick={() => toggleModifyPost(post.id)}/>
+                      </li>
+                      <li>
+                        <img src="/trash.png" alt="supprimer post"
+                        className="article__header__menu__deroulant__icon"
+                        onClick={() => deletePost(post.id)}/>
+                      </li>
+                    </ul>
+                  </div>
                   )}
                 </div>
 
@@ -296,10 +309,7 @@ function HomePage() {
                 {/* Modify Post Input - Only visible when toggled */}
                 {showModifyPosts[post.id] && (
                   <div className="article__comments__modify__post">
-                    <input
-                      type="text"
-                      name="content"
-                      id="content"
+                    <input type="text" name="content" id="content"
                       value={modifiedPostContent}
                       onChange={(e) => setModifiedPostContent(e.target.value)}
                     />
@@ -310,14 +320,15 @@ function HomePage() {
                 {/* Comments Section */}
                 <div className="article__comments">
                   <p className="article__comments__menu" onClick={() => toggleComments(post.id)}>
-                    Voir les commentaires
+                    
+                  {showComments[post.id] ? "Masquer les commentaires" : "Voir les commentaires"}
                   </p>
 
                   <div className={`article__comments__menu__deroulants ${showComments[post.id] ? 'visible' : ''}`}>
                     <ul>
                       {postComments.map((comment) => {
                         const commentLikesCount = commentLikesMap[comment.id] || 0;
-                        const isAuthor = comment.user_id === user_id;
+                        const isAuthor = comment.user_id === user_id || role_id === 3;
                         const commentAuthor = usersMap[comment.user_id];
 
                         return (
@@ -326,26 +337,22 @@ function HomePage() {
                               <h4>{commentAuthor}</h4>
                               {isAuthor && (
                                 <div className="article__header__menu">
-                                  <img src="/dots.png" alt="menu" className="logos" />
-                                  <ul className="article__header__menu__deroulant">
-                                    <li>
-                                      <img
-                                        src="/stylo.png"
-                                        alt="modifier commentaire"
-                                        className="article__header__menu__deroulant__icon"
-                                        onClick={() => toggleModifyComments(comment.id)}
-                                      />
-                                    </li>
-                                    <li>
-                                      <img
-                                        src="/trash.png"
-                                        alt="supprimer commentaire"
-                                        className="article__header__menu__deroulant__icon"
-                                        onClick={() => handleDeleteComment(comment.id)}
-                                      />
-                                    </li>
-                                  </ul>
-                                </div>
+                                <img src="/dots.png" alt="menu" className="logos" 
+                                  onClick={() => toggleCommentMenu(comment.id)}
+                                />
+                                <ul className={`article__header__menu__deroulant ${showCommentMenu[comment.id] ? 'visible' : ''}`}>
+                                  <li>
+                                    <img src="/stylo.png" alt="modifier commentaire" className="article__header__menu__deroulant__icon"
+                                      onClick={() => toggleModifyComments(comment.id)}
+                                    />
+                                  </li>
+                                  <li>
+                                    <img src="/trash.png" alt="supprimer commentaire" className="article__header__menu__deroulant__icon"
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                    />
+                                  </li>
+                                </ul>
+                              </div>
                               )}
                             </div>
 
