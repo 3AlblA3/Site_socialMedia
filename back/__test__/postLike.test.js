@@ -64,6 +64,7 @@ describe('GET /postLikes/:id', () => {
             post_id: 1
         } 
 
+
         PostLike.findByPk.mockResolvedValue(postLike);
 
         const response = await request(app)
@@ -119,7 +120,7 @@ describe('POST /postLikes/toggle', () => {
 
         const response = await request(app)
             .post('/postLikes/toggle')
-            .set('Cookie', ['token=validtoken'])
+            .set('Authorization', 'Bearer validtoken')
             .send(postLikeData);
 
         expect(response.status).toBe(201);
@@ -135,6 +136,6 @@ describe('POST /postLikes/toggle', () => {
           .send(postLikeData);
 
         expect(response.status).toBe(401);
-        expect(response.body.message).toBe('Authentication token is missing');
+        expect(response.body.message).toBe('Authorization header missing');
     });
 });

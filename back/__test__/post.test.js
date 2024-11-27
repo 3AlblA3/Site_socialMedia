@@ -139,7 +139,7 @@ describe('POST /posts', () => {
         const response = await request(app)
             .post('/posts')
             .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken')
             .field('content', newPost.content);
 
         expect(response.status).toBe(201);
@@ -157,7 +157,7 @@ describe('POST /posts', () => {
 
         const response = await request(app)
             .post('/posts')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken')
             .send(newPost);
 
         expect(response.status).toBe(201);
@@ -176,7 +176,7 @@ describe('POST /posts', () => {
           .send(newPost);
 
           expect(response.status).toBe(401);
-          expect(response.body.message).toBe('Authentication token is missing');
+          expect(response.body.message).toBe('Authorization header missing');
     
     })
 })
@@ -214,7 +214,7 @@ describe ('PUT /posts/:id', () => {
 
         const response = await request (app)
             .put('/posts/4')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', `Bearer validtoken`)
             .send(updatedPost);
 
         expect(response.status).toBe(200)
@@ -240,7 +240,7 @@ describe ('PUT /posts/:id', () => {
         const response = await request(app)
           .put('/posts/4')
           .attach('image', Buffer.from('fake image data'), 'testimage.jpg')
-          .set('Cookie', ['token=validtoken']) // Set valid token
+          .set('Authorization', 'Bearer validtoken')
           .field('content', updatedPost.content);
   
         expect(response.status).toBe(200);
@@ -266,7 +266,7 @@ describe ('PUT /posts/:id', () => {
             .send(updatedPost);
 
         expect(response.status).toBe(401)
-        expect(response.body.message).toBe("Authentication token is missing")
+        expect(response.body.message).toBe("Authorization header missing")
     }),
 
     it('should return a 403 status if you try to modify another post', async () => {
@@ -285,7 +285,7 @@ describe ('PUT /posts/:id', () => {
 
         const response = await request (app)
             .put('/posts/4')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', `Bearer validtoken`)
             .send(updatedPost);
 
         expect(response.status).toBe(403)
@@ -309,7 +309,7 @@ describe ('DELETE /posts/:id', () => {
 
         const response = await request(app)
             .delete('/posts/5')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Post deleted!");
@@ -330,7 +330,7 @@ describe ('DELETE /posts/:id', () => {
 
         const response = await request(app)
             .delete('/posts/5')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Post deleted!");
@@ -350,7 +350,7 @@ describe ('DELETE /posts/:id', () => {
             .delete('/posts/5')
 
         expect(response.status).toBe(401)
-        expect(response.body.message).toBe("Authentication token is missing")
+        expect(response.body.message).toBe("Authorization header missing")
     })
     
     it('should return a 403 status if you try to delete another post', async () => {
@@ -364,7 +364,7 @@ describe ('DELETE /posts/:id', () => {
 
         const response = await request (app)
             .delete('/posts/5s')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', `Bearer validtoken`)
 
         expect(response.status).toBe(403)
         expect(response.body.message).toBe("Forbidden: you are not allowed to do that!")

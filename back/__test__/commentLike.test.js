@@ -122,7 +122,7 @@ describe('POST /commentLikes/toggle', () => {
 
         const response = await request(app)
             .post('/commentLikes/toggle')
-            .set('Cookie', ['token=validtoken'])
+            .set('Authorization', 'Bearer validtoken')
             .send(commentLikeData);
 
         expect(response.status).toBe(201);
@@ -138,6 +138,6 @@ describe('POST /commentLikes/toggle', () => {
           .send(commentLikeData);
 
         expect(response.status).toBe(401);
-        expect(response.body.message).toBe('Authentication token is missing');
+        expect(response.body.message).toBe('Authorization header missing');
     });
 });

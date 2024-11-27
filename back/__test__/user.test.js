@@ -1,11 +1,10 @@
 const request = require('supertest');
-const app = require('../app');
+const app = require('../app'); // Remplacez par le chemin correct vers votre app Express
 const User = require('../models/modelUser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
 
-//Mock des élements nécéssaires à nos tests
 
 jest.mock('../models/modelUser');
 jest.mock('bcrypt');
@@ -272,6 +271,7 @@ describe('POST /users/login', () => {
         //Résultats attendus
 
         expect(response.status).toBe(200);
+        expect(response.body.token).toBe('validtoken');
         expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedpassword');
         expect(jwt.sign).toHaveBeenCalledWith(
             { user_id: user.id, role_id: user.role_id }, 
@@ -377,7 +377,7 @@ describe('PUT /users/:id', () => {
 
         const response = await request(app)
             .put('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', `Bearer validtoken`)
             .send({
                 first_name: 'Modified',
                 last_name: 'User',
@@ -397,7 +397,7 @@ describe('PUT /users/:id', () => {
 
         const response = await request(app)
             .put('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', `Bearer validtoken`)
             .send({
                 first_name: 'Modified',
                 last_name: 'User',
@@ -407,21 +407,21 @@ describe('PUT /users/:id', () => {
         expect(response.status).toBe(404);
     });
 
-    it('should return 500 if something goes wrong', async () => {
+    it('should return 400 if something goes wrong', async () => {
 
         User.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
         jwt.verify.mockResolvedValue({ user_id: 1, role_id: 2 });
 
         const response = await request(app)
             .put('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', `Bearer validtoken`)
             .send({
                 first_name: 'Modified',
                 last_name: 'User',
                 email: 'modifieduser@gmail.com'
             });
 
-        expect(response.status).toBe(500);
+        expect(response.status).toBe(400);
         expect(response.body.error).toBe('Database error');
     });
 });
@@ -463,7 +463,7 @@ describe('DELETE /users/:id', () => {
         
         const response = await request(app)
             .delete('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('User deleted');
@@ -474,7 +474,7 @@ describe('DELETE /users/:id', () => {
 
         const response = await request(app)
             .delete('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(404);
         expect(response.body.message).toBe('User not found');
@@ -494,10 +494,10 @@ describe('DELETE /users/:id', () => {
 
         const response = await request(app)
             .delete('/users/2')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(403);
-        expect(response.body.message).toBe('Forbidden: you are not allowed to do that!');
+        expect(response.body.message).toBe('Forbidden');
     });
 
     it('should return 500 if something goes wrong', async () => {
@@ -505,7 +505,7 @@ describe('DELETE /users/:id', () => {
 
         const response = await request(app)
             .delete('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error');
@@ -517,7 +517,7 @@ describe('DELETE /users/:id', () => {
         
         const response = await request(app)
             .delete('/users/1')
-            .set('Cookie', ['token=validtoken']) // Set valid token
+            .set('Authorization', 'Bearer validtoken');
         
         expect(response.status).not.toBe(401);
     });

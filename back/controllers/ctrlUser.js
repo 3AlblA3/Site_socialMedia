@@ -83,22 +83,12 @@ exports.login = async (req, res, next) => {
             { algorithm: 'HS256', expiresIn: '24h' } // Options
         );
 
-        //Retourner le token dans les cookies
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000 
-        });
-
-        res.status(200).json({ message: 'Login successful'});
-
+        // Retourner le token dans la réponse
+        res.status(200).json({ token: token });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
-
 
 //Récupérer les informations d'un user
 
@@ -119,7 +109,19 @@ exports.getOneUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
-        
+
+        // Vérifier si l'utilisateur existe
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        //Vérifier que le user à modifier est bien celui qui exécute la requête
+
+        if (user.id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+
         const hash = await bcrypt.hash(req.body.password, 10); // "Hachage" du mot de passe
 
         const userObject = {
@@ -149,6 +151,20 @@ exports.updateUser = async (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
+
+        // On récupère les informations du user à supprimer
+
+        const userToDelete = await User.findByPk(userId);
+
+        if (!userToDelete) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        //Vérifier que le user à supprimer est bien celui qui exécute la requête
+
+        if (userToDelete.id !== req.auth.user_id) {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
 
         // Si les vérifications passent, supprimer l'utilisateur
         await User.destroy({ where: { id: req.params.id } });
