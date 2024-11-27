@@ -86,7 +86,6 @@ function Signup() {
         //En cas de réussite, renvoie d'une réponse réussie et renvoie vers la page login avec navigate
 
         const responseData = await response.json();
-        console.log('Success:', responseData);
         alert('Inscription réussie !');
         navigate('/login'); 
       }

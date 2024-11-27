@@ -407,7 +407,7 @@ describe('PUT /users/:id', () => {
         expect(response.status).toBe(404);
     });
 
-    it('should return 400 if something goes wrong', async () => {
+    it('should return 500 if something goes wrong', async () => {
 
         User.findByPk.mockRejectedValue(new Error('Database error')); // Mock une erreur lors de la recherche
         jwt.verify.mockResolvedValue({ user_id: 1, role_id: 2 });
@@ -421,7 +421,7 @@ describe('PUT /users/:id', () => {
                 email: 'modifieduser@gmail.com'
             });
 
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error');
     });
 });
@@ -497,7 +497,7 @@ describe('DELETE /users/:id', () => {
             .set('Authorization', 'Bearer validtoken');
 
         expect(response.status).toBe(403);
-        expect(response.body.message).toBe('Forbidden');
+        expect(response.body.message).toBe('Forbidden: you are not allowed to do that!');
     });
 
     it('should return 500 if something goes wrong', async () => {

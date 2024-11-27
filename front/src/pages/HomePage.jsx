@@ -52,6 +52,7 @@ function HomePage() {
           return map;
         }, {});
 
+
         const commentsMap = commentsData.reduce((map, comment) => {
           if (!map[comment.post_id]) {
             map[comment.post_id] = [];
@@ -59,6 +60,7 @@ function HomePage() {
           map[comment.post_id].push(comment);
           return map;
         }, {});
+
 
         const postLikesMap = postLikesData.reduce((map, like) => {
           if (!map[like.post_id]) {
@@ -82,13 +84,14 @@ function HomePage() {
         setPostLikesMap(postLikesMap);
         setCommentLikesMap(commentLikesMap);
       } catch (error) {
-        console.error('Erreur:', error);
         alert('Erreur lors de la récupération des posts: ' + error.message);
       }
     }
 
     getPosts();
   }, []);
+
+  //Gestion de la suppression de posts
 
   async function deletePost(id) {
     const token = localStorage.getItem('authToken');
@@ -105,12 +108,15 @@ function HomePage() {
       }
 
       alert('Post supprimé avec succès!');
+
+      //Remets les posts dans l'ordre après la suppression
       setPosts((existingPosts) => existingPosts.filter((post) => post.id !== id));
     } catch (error) {
-      console.error('Error:', error);
       alert('Erreur lors de la suppression : ' + error.message);
     }
   }
+
+  // Modification des posts
 
   async function modifyPost(id) {
     const token = localStorage.getItem('authToken');
@@ -131,22 +137,28 @@ function HomePage() {
       }
 
       setPosts((existingPosts) =>
-        existingPosts.map((p) => (p.id === id ? { ...p, content: modifiedPostContent } : p))
+        existingPosts.map((post) => (post.id === id ? { ...post, content: modifiedPostContent } : post))
       );
       // Reset the edit state
       toggleModifyPost(id);
     } catch (error) {
-      console.error('Error:', error);
       alert('Erreur lors de la modification : ' + error.message);
     }
   }
 
+// Gère la visibilité de l'icône modifier post
+
   function toggleModifyPost(post_id) {
+
+    // On Garde trâce du post à modifier par le post_id
+
     setShowModifyPosts((existingState) => ({
       ...existingState,
-      [post_id]: !existingState[post_id], // Toggle the visibility of the modify input for the post
+      [post_id]: !existingState[post_id],
     }));
   }
+
+  //Gère l'affichage des commentaires par post_id
 
   function toggleComments(post_id) {
     setShowComments((existingState) => ({
@@ -154,32 +166,45 @@ function HomePage() {
       [post_id]: !existingState[post_id],
     }));
   }
+  
+
+  //Gère le like/unlike d'un post
 
   async function handlePostLike(post_id) {
     try {
+
+      //Import de la fonction togglePostLike
+
       const result = await togglePostLike(post_id);
       if (result) {
+
+        //Garde trace de combien de likes le post a, et incrémente ou décrément en fonction de s'il est liké ou non
         setPostLikesMap((existingPostLikesMap) => ({
           ...existingPostLikesMap,
           [post_id]: result.liked 
             ? (existingPostLikesMap[post_id] || 0) + 1
             : Math.max((existingPostLikesMap[post_id] || 1) - 1, 0),
         }));
+
+        //Maintiens le statut actuel des likes
         setNewPostLike((existing) => ({
           ...existing,
           [post_id]: result.liked,
         }));
       }
     } catch (error) {
-      console.error('Error:', error);
       alert('Erreur lors de la gestion du like');
     }
   }
 
+
+  // Gère le like/unlike d'un commentaire
   async function handleCommentLike(comment_id) {
     try {
+
       const result = await toggleCommentLike(comment_id);
       if (result) {
+
         setCommentLikesMap((existingCommentLikesMap) => ({
           ...existingCommentLikesMap,
           [comment_id]: result.liked 
@@ -192,11 +217,11 @@ function HomePage() {
         }));
       }
     } catch (error) {
-      console.error('Error:', error);
       alert('Erreur lors de la gestion du like');
     }
   }
   
+  // Ajout d'un commentaire par post_id
   async function handleAddComment(post_id) {
     const commentContent = newComments[post_id];
     if (!commentContent || commentContent.trim() === '') {
@@ -204,46 +229,60 @@ function HomePage() {
       return;
     }
 
+    // Import de la fonction d'un createComment
+
     try {
       const newComment = await createComment(post_id, commentContent);
+
+      //Ajoute le nouveau commentaire à notre tableau de commentaires pour ce post
 
       if (newComment && newComment.post_id === post_id) {
         setCommentsMap((existingCommentsMap) => ({
           ...existingCommentsMap,
           [post_id]: [...(existingCommentsMap[post_id] || []), newComment],
         }));
+
+        // Reset le champ d'entrée pour les nouveaux commentaires
         setNewComments((existing) => ({
           ...existing,
           [post_id]: '',
         }));
+
+        // Assure que le commentaire est bien visible 
         setShowComments((existing) => ({
           ...existing,
           [post_id]: true,
         }));
       }
     } catch (error) {
-      console.error('Error adding comment:', error);
       alert("Une erreur est survenue lors de l'ajout du commentaire.");
     }
   }
 
+  // Gestion de l'affichage du modify comments
+
   function toggleModifyComments(comment_id) {
     setShowModifyComments((existingState) => ({
       ...existingState,
-      [comment_id]: !existingState[comment_id], // Affiche/cache notre bouton modify
+      [comment_id]: !existingState[comment_id], 
     }));
   }
 
+  // Gestion de la modification d'un commentaire
+
   function handleModifyComment(comment_id, modifiedCommentContent) {
     modifyComment(comment_id, modifiedCommentContent);
-    // Reset the edit state
     toggleModifyComments(comment_id);
   }
+
+  // Gestion de la suppression d'un commentaire
 
   function handleDeleteComment(comment_id) {
     deleteComment(comment_id);
   }
   const [showMenu, setShowMenu] = useState({});
+
+  // Affichage du menu de modification des posts
 
   function toggleMenu(id) {
     setShowMenu(prevState => ({
@@ -265,7 +304,10 @@ function HomePage() {
     <>
       <CreatePost />
       <section className="posts" id="posts">
-        {posts.map((post) => {
+        {posts
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .map((post) => {
             const author = usersMap[post.user_id];
             const postComments = commentsMap[post.id] || [];
             const postLikesCount = postLikesMap[post.id] || 0;
@@ -306,7 +348,7 @@ function HomePage() {
                  <p>{postLikesMap[post.id] || 0}</p>
                 </div>
 
-                {/* Modify Post Input - Only visible when toggled */}
+                {/* Modifier Post*/}
                 {showModifyPosts[post.id] && (
                   <div className="article__comments__modify__post">
                     <input type="text" name="content" id="content"
@@ -317,7 +359,7 @@ function HomePage() {
                   </div>
                 )}
 
-                {/* Comments Section */}
+                {/* Commentaires */}
                 <div className="article__comments">
                   <p className="article__comments__menu" onClick={() => toggleComments(post.id)}>
                     
@@ -365,7 +407,6 @@ function HomePage() {
                               <p>{commentLikesMap[comment.id] || 0}</p>
                             </div>
 
-                            {/* Modify Comment Input - Only visible when toggled */}
                             {showModifyComments[comment.id] && (
                               <div>
                                 <input

@@ -109,18 +109,7 @@ exports.getOneUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
-
-        // Vérifier si l'utilisateur existe
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found!' });
-        }
-
         //Vérifier que le user à modifier est bien celui qui exécute la requête
-
-        if (user.id !== req.auth.user_id) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
 
         const hash = await bcrypt.hash(req.body.password, 10); // "Hachage" du mot de passe
 
@@ -151,20 +140,6 @@ exports.updateUser = async (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
-
-        // On récupère les informations du user à supprimer
-
-        const userToDelete = await User.findByPk(userId);
-
-        if (!userToDelete) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        //Vérifier que le user à supprimer est bien celui qui exécute la requête
-
-        if (userToDelete.id !== req.auth.user_id) {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
 
         // Si les vérifications passent, supprimer l'utilisateur
         await User.destroy({ where: { id: req.params.id } });

@@ -38,7 +38,6 @@ function Login() {
 
       if (!response.ok) {
         let errorData = await response.json();
-        console.error('Error:', errorData);
         alert(`Paire email/mot de passe incorrect: ${errorData.error}`);
 
       } else {
@@ -46,7 +45,6 @@ function Login() {
         //En cas de réussite, renvoi d'une réponse réussie et renvoi du jsonwebtoken dans le local storage
 
         const responseData = await response.json();
-        console.log('Success:', responseData);
         alert('Connexion réussie !');
         localStorage.setItem('authToken', responseData.token);
         window.dispatchEvent(new Event('loginStateChange'));
