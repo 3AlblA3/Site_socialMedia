@@ -28,21 +28,21 @@ exports.togglePostLike = async (req, res, next) => {
   
       const existingLike = await PostLike.findOne({
         where: { user_id, post_id },
-        paranoid: false // This will include soft-deleted records
+        paranoid: false //Inclut le soft delete
       });
   
       if (existingLike) {
         if (existingLike.deletedAt) {
-          // If the like was soft-deleted, restore it
+          // Si le like a été supprimé, le restore
           await existingLike.restore();
           res.status(200).json({ message: 'Like restored', liked: true });
         } else {
-          // If the like exists and is not deleted, soft-delete it
+          // Si le like existe, le supprimer
           await existingLike.destroy();
           res.status(200).json({ message: 'Like removed', liked: false });
         }
       } else {
-        // If the like doesn't exist, create it
+        // Si le like n'existe pas, le créer
         await PostLike.create({ user_id, post_id });
         res.status(201).json({ message: 'Like added', liked: true });
       }

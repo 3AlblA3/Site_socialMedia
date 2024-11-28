@@ -110,7 +110,7 @@ function HomePage() {
       alert('Post supprimé avec succès!');
 
       //Remets les posts dans l'ordre après la suppression
-      setPosts((existingPosts) => existingPosts.filter((post) => post.id !== id));
+      setPosts((prevState) => prevState.filter((post) => post.id !== id));
     } catch (error) {
       alert('Erreur lors de la suppression : ' + error.message);
     }
@@ -120,7 +120,7 @@ function HomePage() {
 
   async function modifyPost(id) {
     const token = localStorage.getItem('authToken');
-    const post = { content: modifiedPostContent }; // Use the modifiedPostContent
+    const post = { content: modifiedPostContent };
 
     try {
       const response = await fetch(`http://localhost:3000/posts/${id}`, {
@@ -136,10 +136,9 @@ function HomePage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      setPosts((existingPosts) =>
-        existingPosts.map((post) => (post.id === id ? { ...post, content: modifiedPostContent } : post))
+      setPosts((prevState) => //Modifie le state des posts en incluant le tableau modifié.
+        prevState.map((post) => (post.id === id ? { ...post, content: modifiedPostContent } : post))
       );
-      // Reset the edit state
       toggleModifyPost(id);
     } catch (error) {
       alert('Erreur lors de la modification : ' + error.message);
@@ -152,18 +151,18 @@ function HomePage() {
 
     // On Garde trâce du post à modifier par le post_id
 
-    setShowModifyPosts((existingState) => ({
-      ...existingState,
-      [post_id]: !existingState[post_id],
+    setShowModifyPosts((prevState) => ({ 
+      ...prevState, //Créer un objet à partir de l'objet existant
+      [post_id]: !prevState[post_id], //ajoute ou modifie le post_id quand il passe en true/false
     }));
   }
 
   //Gère l'affichage des commentaires par post_id
 
   function toggleComments(post_id) {
-    setShowComments((existingState) => ({
-      ...existingState,
-      [post_id]: !existingState[post_id],
+    setShowComments((prevState) => ({
+      ...prevState,
+      [post_id]: !prevState[post_id],
     }));
   }
   
@@ -177,18 +176,18 @@ function HomePage() {
 
       const result = await togglePostLike(post_id);
       if (result) {
+        // Si le résultat est correct
 
-        //Garde trace de combien de likes le post a, et incrémente ou décrément en fonction de s'il est liké ou non
-        setPostLikesMap((existingPostLikesMap) => ({
-          ...existingPostLikesMap,
+        setPostLikesMap((prevState) => ({//Update de l'etat setPostLikesMap
+          ...prevState,
           [post_id]: result.liked 
-            ? (existingPostLikesMap[post_id] || 0) + 1
-            : Math.max((existingPostLikesMap[post_id] || 1) - 1, 0),
+            ? (prevState[post_id] || 0) + 1
+            : Math.max((prevState[post_id] || 1) - 1, 0),
         }));
 
         //Maintiens le statut actuel des likes
-        setNewPostLike((existing) => ({
-          ...existing,
+        setNewPostLike((prevState) => ({
+          ...prevState,
           [post_id]: result.liked,
         }));
       }
@@ -205,14 +204,14 @@ function HomePage() {
       const result = await toggleCommentLike(comment_id);
       if (result) {
 
-        setCommentLikesMap((existingCommentLikesMap) => ({
-          ...existingCommentLikesMap,
+        setCommentLikesMap((prevState) => ({
+          ...prevState,
           [comment_id]: result.liked 
-            ? (existingCommentLikesMap[comment_id] || 0) + 1
-            : Math.max((existingCommentLikesMap[comment_id] || 1) - 1, 0),
+            ? (prevState[comment_id] || 0) + 1
+            : Math.max((prevState[comment_id] || 1) - 1, 0),
         }));
-        setNewCommentLike((existing) => ({
-          ...existing,
+        setNewCommentLike((prevState) => ({
+          ...prevState,
           [comment_id]: result.liked,
         }));
       }
@@ -237,20 +236,20 @@ function HomePage() {
       //Ajoute le nouveau commentaire à notre tableau de commentaires pour ce post
 
       if (newComment && newComment.post_id === post_id) {
-        setCommentsMap((existingCommentsMap) => ({
-          ...existingCommentsMap,
-          [post_id]: [...(existingCommentsMap[post_id] || []), newComment],
+        setCommentsMap((prevState) => ({
+          ...prevState,
+          [post_id]: [...(prevState[post_id] || []), newComment],
         }));
 
         // Reset le champ d'entrée pour les nouveaux commentaires
-        setNewComments((existing) => ({
-          ...existing,
+        setNewComments((prevState) => ({
+          ...prevState,
           [post_id]: '',
         }));
 
         // Assure que le commentaire est bien visible 
-        setShowComments((existing) => ({
-          ...existing,
+        setShowComments((prevState) => ({
+          ...prevState,
           [post_id]: true,
         }));
       }
@@ -262,9 +261,9 @@ function HomePage() {
   // Gestion de l'affichage du modify comments
 
   function toggleModifyComments(comment_id) {
-    setShowModifyComments((existingState) => ({
-      ...existingState,
-      [comment_id]: !existingState[comment_id], 
+    setShowModifyComments((prevState) => ({
+      ...prevState,
+      [comment_id]: !prevState[comment_id], 
     }));
   }
 
@@ -285,7 +284,7 @@ function HomePage() {
   // Affichage du menu de modification des posts
 
   function toggleMenu(id) {
-    setShowMenu(prevState => ({
+    setShowMenu(prevState => ({ //prevState represente l'etat actuel: convention React
       ...prevState,
       [id]: !prevState[id]
     }));
@@ -310,7 +309,6 @@ function HomePage() {
         .map((post) => {
             const author = usersMap[post.user_id];
             const postComments = commentsMap[post.id] || [];
-            const postLikesCount = postLikesMap[post.id] || 0;
             const isAllowed = post.user_id === user_id || role_id === 3;
 
             return (
@@ -319,14 +317,13 @@ function HomePage() {
                   <h3>{author}</h3>
                   {isAllowed && (
                   <div className="article__header__menu">
-                    <img 
-                      src="/dots.png" alt="menu" className="logos" 
+                    <img src="/dots.png" alt="menu" className="logos" 
                       onClick={() => toggleMenu(post.id)}/>
                     <ul className={`article__header__menu__deroulant ${showMenu[post.id] ? 'visible' : ''}`}>
                       <li>
-                        <img
-                          src="/stylo.png" alt="modifier post" className="article__header__menu__deroulant__icon"
-                        onClick={() => toggleModifyPost(post.id)}/>
+                        <img src="/stylo.png" alt="modifier post" 
+                          className="article__header__menu__deroulant__icon"
+                          onClick={() => toggleModifyPost(post.id)}/>
                       </li>
                       <li>
                         <img src="/trash.png" alt="supprimer post"
@@ -351,10 +348,8 @@ function HomePage() {
                 {/* Modifier Post*/}
                 {showModifyPosts[post.id] && (
                   <div className="article__comments__modify__post">
-                    <input type="text" name="content" id="content"
-                      value={modifiedPostContent}
-                      onChange={(e) => setModifiedPostContent(e.target.value)}
-                    />
+                    <input type="text" name="content" id="content" value={modifiedPostContent}
+                      onChange={(e) => setModifiedPostContent(e.target.value)}/>
                     <button onClick={() => modifyPost(post.id)}>Modifier le post</button>
                   </div>
                 )}
@@ -409,11 +404,8 @@ function HomePage() {
 
                             {showModifyComments[comment.id] && (
                               <div>
-                                <input
-                                  type="text"
-                                  value={modifiedCommentContent}
-                                  onChange={(e) => setModifiedCommentContent(e.target.value)}
-                                />
+                                <input type="text" value={modifiedCommentContent}
+                                  onChange={(e) => setModifiedCommentContent(e.target.value)}/>
                                 <button onClick={() => handleModifyComment(comment.id, modifiedCommentContent)}>
                                   Modifier le commentaire
                                 </button>
@@ -424,12 +416,9 @@ function HomePage() {
                       })}
                     </ul>
 
-                    <input
-                      type="text"
-                      placeholder="Ajouter un commentaire"
+                    <input type="text" placeholder="Ajouter un commentaire"
                       value={newComments[post.id] || ''}
-                      onChange={(e) => setNewComments({ ...newComments, [post.id]: e.target.value })}
-                    />
+                      onChange={(e) => setNewComments({ ...newComments, [post.id]: e.target.value })}/>
                     <button onClick={() => handleAddComment(post.id)}>Envoyer</button>
                   </div>
                 </div>

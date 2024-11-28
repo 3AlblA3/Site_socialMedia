@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 function Login() {
 
-  //Partie javascript
-
   //Gestion de nos champs de formulaires
 
   const [email, setEmail] = useState('');
@@ -17,13 +15,9 @@ function Login() {
 
   //Création de notre fonction onSubmit
 
-       async function loginSubmit(event) {
+  async function loginSubmit(event) {
     event.preventDefault();
-
-    const user = {
-      email,
-      password
-    };
+    const user = { email, password };
 
     try {
       const response = await fetch(URL, {
@@ -39,15 +33,11 @@ function Login() {
       if (!response.ok) {
         let errorData = await response.json();
         alert(`Paire email/mot de passe incorrect: ${errorData.error}`);
-
       } else {
-
         //En cas de réussite, renvoi d'une réponse réussie et renvoi du jsonwebtoken dans le local storage
-
         const responseData = await response.json();
         alert('Connexion réussie !');
         localStorage.setItem('authToken', responseData.token);
-        window.dispatchEvent(new Event('loginStateChange'));
         navigate('/'); 
       }
     } catch (error) {
@@ -60,9 +50,6 @@ function Login() {
 
   return (
     <section id="posts">
-
-      {/* Formulaire */}
-
       <form onSubmit={loginSubmit} id="form" className="signupForm">
         <label htmlFor="email">Email :</label>
         <input type="email" name="email" id="email" value={email}

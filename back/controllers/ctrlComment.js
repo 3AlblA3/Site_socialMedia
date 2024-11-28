@@ -41,7 +41,6 @@ exports.getOneComment = async (req, res, next) => {
     }
 };
 
-//UPDATE
 exports.updateComment = async (req, res, next) => {
     try {
         const commentId = req.params.id;  
@@ -56,7 +55,6 @@ exports.updateComment = async (req, res, next) => {
         
         delete commentObject.id; 
 
-        // Mettre à jour l'utilisateur
         await Comment.update(commentObject, {where: { id: commentId }});
 
         res.status(200).json({ message: 'Comment modified!' });
