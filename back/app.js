@@ -12,6 +12,14 @@ const routeComment = require('./routes/routeComment');
 const routePostLike = require('./routes/routePostLike');
 const routeCommentLike = require('./routes/routeCommentLike');
 
+
+// Messaging Routes
+const routeMessage = require('./routes/routeMessage');
+const routeChatGroup = require('./routes/routeChatgroup');
+const routeChatGroupMessage = require('./routes/routeChatgroupMessage');
+const routeChatGroupMember = require('./routes/routeChatgroupMember');
+const routeChatGroupMessageRead = require('./routes/routeChatgroupMessageRead');
+
 // Autorisation du CORS
 
 app.use((req, res, next) => { 
@@ -33,6 +41,13 @@ app.use('/posts', routePost);
 app.use('/comments', routeComment);
 app.use('/postLikes', routePostLike);
 app.use('/commentLikes', routeCommentLike);
+
+// Route des messages 
+app.use('/messages', routeMessage);
+app.use('/chatGroups', routeChatGroup);
+app.use('/chatGroupMessages', routeChatGroupMessage);
+app.use('/chatGroupMembers', routeChatGroupMember);
+app.use('/chatGroupMessageReads', routeChatGroupMessageRead);
 
 
 module.exports = app

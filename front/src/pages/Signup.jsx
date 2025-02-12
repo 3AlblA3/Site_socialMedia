@@ -36,7 +36,7 @@ function Signup() {
       return;
     }
 
-    const regexMail = new RegExp("[a-z0-9._-]+@[a-z0-9._-]+\.[a-z0-9._-]+");
+    const regexMail = new RegExp("[a-z0-9._-]+@[a-z0-9_-]+\.[a-z0-9._-]+");
     if (!regexMail.test(email)) {
       alert('Veuillez entrer une adresse e-mail valide.');
       return;

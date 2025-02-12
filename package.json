@@ -10,5 +10,8 @@
     "dev:back": "cd back && nodemon index"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.1.0"
+  }
 }

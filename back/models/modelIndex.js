@@ -9,6 +9,14 @@ const PostLike = require('./PostLike')(sequelize, Sequelize.DataTypes);
 const Comment = require('./Comment')(sequelize, Sequelize.DataTypes);
 const CommentLike = require('./CommentLike')( sequelize, Sequelize.DataTypes);
 
+// Concernant les messages
+const ChatGroup = require('./chatGroup')(sequelize, Sequelize.DataTypes);
+const ChatGroupMember = require('./chatGroupMember')(sequelize, Sequelize.DataTypes);
+const ChatGroupMessage = require('./chatGroupMessage')(sequelize, Sequelize.DataTypes);
+const ChatGroupMessageRead = require('./chatGroupMessageRead')(sequelize, Sequelize.DataTypes);
+const Message = require('./message')(sequelize, Sequelize.DataTypes);
+
+
 // Les relations de Role
 
 Role.hasMany(User, {
@@ -43,6 +51,17 @@ User.hasMany(CommentLike, {
       foreignKey: 'user_id',
       as: 'commentLikes'
     });
+
+    
+User.hasMany(Message, { 
+  foreignKey: 'sender_id', 
+  as: 'sentMessages' 
+});
+
+User.hasMany(Message, { 
+  foreignKey: 'receiver_id', 
+  as: 'receivedMessages' 
+});
 
 //Les relations des Post
 
@@ -102,6 +121,32 @@ CommentLike.belongsTo(Comment, {
   as: 'comment'
 });
 
+// Messages
+
+Message.belongsTo(User, { foreignKey: 'sender_id', as: 'sender', onDelete: "CASCADE" });
+Message.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver', onDelete: "CASCADE" });
+
+
+// Chatgroup 
+
+ChatGroup.hasMany(ChatGroupMessage, { foreignKey: 'group_id', onDelete: "CASCADE", as: 'messages' });
+ChatGroup.hasMany(ChatGroupMember, { foreignKey: 'group_id', onDelete: "CASCADE", as: 'members' });
+ChatGroup.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
+
+// Chatgroup membres
+
+ChatGroupMember.belongsTo(ChatGroup, { foreignKey: 'group_id', as: 'group' });
+ChatGroupMember.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// Chatgroup messages
+
+ChatGroupMessage.hasMany(ChatGroupMessageRead, { foreignKey: 'message_id', onDelete: "CASCADE", as: 'reads' });
+ChatGroupMessage.belongsTo(ChatGroup, { foreignKey: 'group_id', as: 'group' });
+ChatGroupMessage.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+
+// Chatgroup messages lus 
+ChatGroupMessageRead.belongsTo(ChatGroupMessage, { foreignKey: 'message_id', as: 'message' });
+ChatGroupMessageRead.belongsTo(User, { foreignKey: 'user_id', as: 'reader', onDelete: "CASCADE" });
 
 // Synchroniser les modèles avec la base de données
 sequelize.sync({ force: false }) // force: true pour forcer la mise à jour des tables (utiliser avec prudence)
@@ -109,4 +154,6 @@ sequelize.sync({ force: false }) // force: true pour forcer la mise à jour des 
     console.log('Database & tables created!');
   });
 
-module.exports = { sequelize, Role, User, Post, PostLike, Comment, CommentLike };
+module.exports = { sequelize, Role, User, Post, PostLike, Comment, CommentLike,
+  ChatGroup, ChatGroupMember, ChatGroupMessage, ChatGroupMessageRead, Message
+ };

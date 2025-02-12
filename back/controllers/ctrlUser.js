@@ -109,12 +109,10 @@ exports.getOneUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
-        //Vérifier que le user à modifier est bien celui qui exécute la requête
-
         const hash = await bcrypt.hash(req.body.password, 10); // "Hachage" du mot de passe
 
         const userObject = {
-            role_id: req.body.role_id, //Pour l'instant l'user pourra choisir son rôle à la création de son compte
+            role_id: req.body.role_id, 
             first_name: req.body.first_name,
             last_name: req.body.last_name,
             username: req.body.username,
@@ -127,9 +125,7 @@ exports.updateUser = async (req, res, next) => {
 
         // Mettre à jour l'utilisateur
         await User.update(userObject, { where: { id: userId } });
-
         res.status(200).json({ message: 'User modified!' });
-
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
